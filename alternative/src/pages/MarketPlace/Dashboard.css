@@ -1,0 +1,953 @@
+/* Dashboard.css - Holiday Store Styles */
+.MarketPlace {
+  background-color: #f8f9fa;
+  color: #333;
+  line-height: 1.5;
+  font-family: 'Arial', sans-serif;
+  min-height: 100vh;
+}
+
+.MarketPlace .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* Top Promotion Banner */
+.MarketPlace .top-banner {
+  background-color: #0d3b2a;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-weight: bold;
+}
+
+.MarketPlace .top-banner h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.MarketPlace .top-banner h1 span {
+  color: #ffcc00;
+}
+
+/* User Info Bar */
+.MarketPlace .user-info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.MarketPlace .welcome-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.MarketPlace .welcome-message i {
+  font-size: 24px;
+  color: #1a5d3a;
+}
+
+.MarketPlace .user-type {
+  background: #ffcc00;
+  color: #0d3b2a;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 10px;
+  text-transform: uppercase;
+}
+
+.MarketPlace .cart-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.MarketPlace .cart-icon {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.MarketPlace .cart-icon:hover {
+  background: #f0f0f0;
+  color: #1a5d3a;
+}
+
+.MarketPlace .cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff3366;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.MarketPlace .logout-btn {
+  background: #ff3366;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.MarketPlace .logout-btn:hover {
+  background: #e62e5c;
+  transform: translateY(-2px);
+}
+
+/* Holiday Cheer Section */
+.MarketPlace .holiday-section {
+  background: linear-gradient(rgba(26, 93, 58, 0.9), rgba(13, 59, 42, 0.9)), 
+              url('https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-align: center;
+  padding: 60px 20px;
+  margin: 20px 0;
+  border-radius: 8px;
+  position: relative;
+}
+
+.MarketPlace .holiday-title {
+  font-size: 42px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.MarketPlace .holiday-title span {
+  color: #ffcc00;
+  font-style: italic;
+}
+
+.MarketPlace .cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.MarketPlace .cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 30px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  border: none;
+  cursor: pointer;
+}
+
+.MarketPlace .learn-more-btn {
+  background-color: white;
+  color: #0d3b2a;
+  border: 2px solid white;
+}
+
+.MarketPlace .learn-more-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.MarketPlace .shop-now-btn {
+  background-color: #ffcc00;
+  color: #0d3b2a;
+  border: 2px solid #ffcc00;
+}
+
+.MarketPlace .shop-now-btn:hover {
+  background-color: #e6b800;
+  border-color: #e6b800;
+  transform: scale(1.05);
+}
+
+/* Navigation Menu */
+.MarketPlace .main-nav {
+  background-color: white;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.MarketPlace .nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+}
+
+.MarketPlace .logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a5d3a;
+}
+
+.MarketPlace .logo span {
+  color: #ff9900;
+}
+
+.MarketPlace .nav-menu {
+  display: flex;
+  list-style: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.MarketPlace .nav-menu li {
+  margin: 0 12px;
+}
+
+.MarketPlace .nav-menu a {
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+  transition: color 0.3s;
+  white-space: nowrap;
+}
+
+.MarketPlace .nav-menu a:hover {
+  color: #1a5d3a;
+}
+
+.MarketPlace .nav-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.MarketPlace .nav-icons a {
+  color: #333;
+  font-size: 18px;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.MarketPlace .nav-icons a:hover {
+  color: #1a5d3a;
+}
+
+.MarketPlace .mini-cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff3366;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Product Showcase */
+.MarketPlace .product-showcase {
+  margin-bottom: 40px;
+}
+
+.MarketPlace .section-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #1a5d3a;
+  font-weight: bold;
+  text-align: center;
+}
+
+.MarketPlace .product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.MarketPlace .product-card {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.MarketPlace .product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.MarketPlace .product-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.MarketPlace .product-info {
+  padding: 20px;
+}
+
+.MarketPlace .product-category {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.MarketPlace .product-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.MarketPlace .product-price {
+  font-size: 20px;
+  color: #1a5d3a;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.MarketPlace .old-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.MarketPlace .discount-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: #ff3366;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Rotating Categories Section */
+.MarketPlace .rotating-categories-section {
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.MarketPlace .rotating-carousel {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+  margin: 30px auto;
+}
+
+.MarketPlace .carousel-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 25px;
+  animation: rotateCarousel 40s linear infinite;
+  will-change: transform;
+}
+
+.MarketPlace .carousel-track:hover {
+  animation-play-state: paused;
+}
+
+.MarketPlace .category-card-rotating {
+  min-width: 200px;
+  height: 200px;
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.MarketPlace .category-card-rotating:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+.MarketPlace .category-image-rotating {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.MarketPlace .category-name-rotating {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  padding: 15px 10px;
+  text-align: center;
+  background-color: white;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Carousel Controls */
+.MarketPlace .carousel-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.MarketPlace .control-btn {
+  background-color: #1a5d3a;
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.MarketPlace .control-btn:hover {
+  background-color: #0d3b2a;
+  transform: scale(1.1);
+}
+
+.MarketPlace .pause-btn {
+  background-color: #ff3366;
+}
+
+.MarketPlace .pause-btn:hover {
+  background-color: #e62e5c;
+}
+
+/* Installment Plans */
+.MarketPlace .installment-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+  background-image: url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  color: white;
+}
+
+.MarketPlace .installment-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(13, 59, 42, 0.85);
+  border-radius: 8px;
+}
+
+.MarketPlace .installment-section .section-title {
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.MarketPlace .installment-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+  position: relative;
+  z-index: 1;
+}
+
+.MarketPlace .installment-card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #ffcc00;
+  color: #333;
+  transition: transform 0.3s ease;
+}
+
+.MarketPlace .installment-card:hover {
+  transform: translateY(-5px);
+}
+
+.MarketPlace .installment-card h4 {
+  color: #1a5d3a;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.MarketPlace .apply-btn {
+  background: #1a5d3a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s;
+}
+
+.MarketPlace .apply-btn:hover {
+  background: #0d3b2a;
+}
+
+/* Featured Banner */
+.MarketPlace .featured-banner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.MarketPlace .banner-card {
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.MarketPlace .banner-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.MarketPlace .banner-content {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.MarketPlace .banner-content h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+/* Cart Sidebar */
+.MarketPlace .cart-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 350px;
+  height: 100vh;
+  background: white;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.MarketPlace .cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background: #1a5d3a;
+  color: white;
+}
+
+.MarketPlace .cart-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.MarketPlace .close-cart {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.MarketPlace .cart-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.MarketPlace .empty-cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #999;
+}
+
+.MarketPlace .empty-cart i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #ddd;
+}
+
+.MarketPlace .cart-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.MarketPlace .cart-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 15px;
+}
+
+.MarketPlace .cart-item-details {
+  flex: 1;
+}
+
+.MarketPlace .cart-item-details h4 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.MarketPlace .cart-item-details p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.MarketPlace .remove-item {
+  background: none;
+  border: none;
+  color: #ff3366;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 14px;
+}
+
+.MarketPlace .remove-item:hover {
+  color: #e62e5c;
+}
+
+.MarketPlace .cart-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.MarketPlace .cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.MarketPlace .checkout-btn {
+  width: 100%;
+  padding: 12px;
+  background: #ffcc00;
+  color: #0d3b2a;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+
+.MarketPlace .checkout-btn:hover {
+  background: #e6b800;
+}
+
+.MarketPlace .continue-shopping {
+  width: 100%;
+  padding: 10px;
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.MarketPlace .continue-shopping:hover {
+  background: #e0e0e0;
+}
+
+/* Footer */
+.MarketPlace .footer {
+  background-color: #1a5d3a;
+  color: white;
+  padding: 40px 0 20px;
+  margin-top: 40px;
+  background-image: url('https://images.unsplash.com/photo-1519452639340-7f0d4e49470e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.MarketPlace .footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(13, 59, 42, 0.9);
+}
+
+.MarketPlace .footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.MarketPlace .footer-column h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #ffcc00;
+}
+
+.MarketPlace .footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.MarketPlace .footer-links li {
+  margin-bottom: 10px;
+}
+
+.MarketPlace .footer-links a {
+  color: #ddd;
+  transition: color 0.3s;
+}
+
+.MarketPlace .footer-links a:hover {
+  color: #ffcc00;
+}
+
+.MarketPlace .copyright {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  color: #aaa;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.MarketPlace .logged-in-as {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.MarketPlace .percent-sign {
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* Animation */
+@keyframes rotateCarousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .MarketPlace .nav-menu {
+    justify-content: flex-start;
+    margin-top: 15px;
+  }
+  
+  .MarketPlace .nav-container {
+    flex-wrap: wrap;
+  }
+  
+  .MarketPlace .holiday-title {
+    font-size: 36px;
+  }
+  
+  .MarketPlace .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .MarketPlace .category-card-rotating {
+    min-width: 180px;
+    height: 180px;
+  }
+  
+  .MarketPlace .category-image-rotating {
+    height: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .MarketPlace .top-banner h1 {
+    font-size: 22px;
+  }
+  
+  .MarketPlace .holiday-title {
+    font-size: 28px;
+  }
+  
+  .MarketPlace .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .MarketPlace .cta-button {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .MarketPlace .nav-menu {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .MarketPlace .nav-menu li {
+    margin: 5px 0;
+  }
+  
+  .MarketPlace .featured-banner {
+    grid-template-columns: 1fr;
+  }
+  
+  .MarketPlace .rotating-carousel {
+    height: 180px;
+  }
+  
+  .MarketPlace .category-card-rotating {
+    min-width: 150px;
+    height: 150px;
+  }
+  
+  .MarketPlace .category-image-rotating {
+    height: 100px;
+  }
+  
+  .MarketPlace .category-name-rotating {
+    font-size: 14px;
+    padding: 10px 5px;
+  }
+  
+  .MarketPlace .cart-sidebar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .MarketPlace .installment-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .MarketPlace .footer-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .MarketPlace .product-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .MarketPlace .rotating-carousel {
+    height: 160px;
+  }
+  
+  .MarketPlace .category-card-rotating {
+    min-width: 140px;
+    height: 140px;
+  }
+  
+  .MarketPlace .user-info-bar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .MarketPlace .cart-section {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

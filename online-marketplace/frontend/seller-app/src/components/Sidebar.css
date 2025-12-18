@@ -1,0 +1,179 @@
+/* Sidebar.css - Amazon Premium Style */
+.sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #232F3E 0%, #131A22 100%);
+  color: white;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.sidebar-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  color: #FF9900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-logo i {
+  font-size: 28px;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-user i {
+  font-size: 20px;
+  color: #FFD814;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.sidebar-menu li {
+  margin-bottom: 6px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(6px);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, #FFD814 0%, #F7CA00 100%);
+  color: #0F1111;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(255, 216, 20, 0.35);
+}
+
+.sidebar-link.active i {
+  color: #0F1111;
+}
+
+.sidebar-link.sub {
+  padding-left: 45px;
+  font-size: 14px;
+}
+
+.sidebar-dropdown {
+  position: relative;
+}
+
+.dropdown-arrow {
+  cursor: pointer;
+  padding: 6px;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.dropdown-arrow:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.15);
+}
+
+.sidebar-submenu {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+  padding-left: 12px;
+  border-left: 2px solid rgba(255, 216, 20, 0.3);
+}
+
+.sidebar-submenu li {
+  margin-bottom: 4px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #C7511F 0%, #A0410F 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  font-size: 15px;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #A0410F 0%, #8A350C 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(199, 81, 31, 0.4);
+}
+
+/* Sidebar Divider */
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 15px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .sidebar-logo {
+    font-size: 20px;
+  }
+
+  .sidebar-link {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}

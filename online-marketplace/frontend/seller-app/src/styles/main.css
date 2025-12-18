@@ -1,0 +1,166 @@
+/* Global Styles - Amazon-Style Premium Template */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #EAEDED;
+  color: #0F1111;
+  line-height: 1.5;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #C7511F;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+input,
+button {
+  font-family: inherit;
+}
+
+input:focus {
+  outline: none;
+  border-color: #007185;
+  box-shadow: 0 0 0 3px rgba(0, 113, 133, 0.1);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  flex-direction: column;
+  gap: 20px;
+  background: linear-gradient(135deg, #232F3E 0%, #37475A 50%, #131A22 100%);
+}
+
+.loading-spinner i {
+  font-size: 48px;
+  color: #FFD814;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner p {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Pulse animation */
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Seller App specific styles */
+.seller-app {
+  min-height: 100vh;
+  background-color: #EAEDED;
+}
+
+/* Color scheme - Amazon Premium Style */
+:root {
+  --primary-dark: #232F3E;
+  --primary-darker: #131A22;
+  --secondary-dark: #37475A;
+  --accent-gold: #FFD814;
+  --accent-gold-hover: #F7CA00;
+  --accent-orange: #FF9900;
+  --accent-orange-dark: #C7511F;
+  --text-primary: #0F1111;
+  --text-secondary: #565959;
+  --text-light: #DDD;
+  --bg-light: #EAEDED;
+  --bg-white: #FFFFFF;
+  --border-color: #D5D9D9;
+  --success-green: #067D62;
+  --gradient-header: linear-gradient(180deg, #232F3E 0%, #131A22 100%);
+  --gradient-hero: linear-gradient(135deg, #232F3E 0%, #37475A 50%, #131A22 100%);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

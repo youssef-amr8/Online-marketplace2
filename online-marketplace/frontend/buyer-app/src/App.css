@@ -1,0 +1,299 @@
+/* src/App.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+  padding-top: 86px; /* 48px header + 38px categories = 86px */
+  margin: 0;
+}
+
+.App {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main Content Area */
+.main-content {
+  min-height: calc(100vh - 86px);
+  background-color: #f5f5f5;
+  padding-top: 0;
+  margin: 0;
+}
+
+/* Home Page Styles */
+.home-page {
+  padding: 30px 20px;
+  text-align: center;
+  background-color: #f5f5f5;
+  margin: 0;
+}
+
+.home-page h1 {
+  font-size: 36px;
+  color: #0f1111;
+  margin-bottom: 15px;
+}
+
+.home-page p {
+  font-size: 18px;
+  color: #565959;
+  margin-bottom: 25px;
+}
+
+.home-features {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: white;
+  padding: 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  text-align: center;
+}
+
+.feature-card h3 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* General Page Container */
+.page-container {
+  padding: 30px 20px;
+  text-align: center;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 86px);
+  margin: 0;
+}
+
+.page-container h1 {
+  font-size: 36px;
+  color: #0f1111;
+  margin-bottom: 15px;
+}
+
+.page-container p {
+  font-size: 18px;
+  color: #565959;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ff9900;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 40px auto;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  body {
+    padding-top: 80px; /* 44px header + 36px categories = 80px */
+  }
+
+  .main-content {
+    min-height: calc(100vh - 80px);
+    padding-top: 0;
+  }
+
+  .home-page {
+    padding: 25px 15px;
+    margin: 0;
+  }
+
+  .home-page h1 {
+    font-size: 28px;
+  }
+
+  .home-page p {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+
+  .feature-card {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px;
+  }
+
+  .page-container {
+    padding: 25px 15px;
+    margin: 0;
+  }
+
+  .page-container h1 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding-top: 76px; /* 42px header + 34px categories = 76px */
+  }
+
+  .main-content {
+    min-height: calc(100vh - 76px);
+    padding-top: 0;
+  }
+
+  .home-page {
+    padding: 20px 15px;
+    margin: 0;
+  }
+
+  .home-page h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .home-features {
+    gap: 15px;
+  }
+
+  .feature-card {
+    padding: 12px;
+  }
+
+  .page-container {
+    padding: 20px 15px;
+    margin: 0;
+  }
+
+  .page-container h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+}
+
+/* Home Categories Section */
+.home-categories-section {
+  max-width: 1200px;
+  margin: 40px auto 0;
+  text-align: center;
+}
+
+.home-categories-section h2 {
+  color: #2c3e50;
+  margin-bottom: 25px;
+  font-size: 28px;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 0 20px;
+}
+
+.category-card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.category-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.category-card h3 {
+  font-size: 18px;
+  color: #2c3e50;
+  margin: 0;
+}
