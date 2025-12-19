@@ -1,32 +1,83 @@
 import Sidebar from "../components/Sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getSellerOrders, updateOrderStatus } from "../services/orderService";
 import "./PageStyles.css";
 
 function Orders() {
   const navigate = useNavigate();
 
-  // Quick stats
-  const stats = {
-    totalOrders: 156,
-    pending: 12,
-    processing: 5,
-    completed: 139,
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pending: 0,
+    processing: 0,
+    completed: 0
+  });
+
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [recentCompleted, setRecentCompleted] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const handleShipNow = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 'Accepted');
+      await fetchOrders(); // Refresh to update list
+      alert(`Order #${orderId} moved to Processing!`);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      const msg = error.response?.data?.message || error.message || 'Failed to update order.';
+      alert(`Error: ${msg}`);
+    }
   };
 
-  // Sample pending orders
-  const [pendingOrders] = useState([
-    { id: 1231, product: "Wireless Earbuds Pro", qty: 2, buyer: "Ahmed M.", amount: 178, date: "Today", status: "Awaiting Shipment" },
-    { id: 1230, product: "Smart Watch Series X", qty: 1, buyer: "Sara K.", amount: 199, date: "Today", status: "Processing" },
-    { id: 1229, product: "Bluetooth Speaker", qty: 1, buyer: "Omar A.", amount: 65, date: "Yesterday", status: "Awaiting Shipment" },
-  ]);
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const orders = await getSellerOrders();
 
-  // Recent completed
-  const [recentCompleted] = useState([
-    { id: 1228, product: "Laptop Stand Pro", buyer: "Laila A.", amount: 45, date: "Yesterday", status: "Delivered" },
-    { id: 1227, product: "USB-C Hub", buyer: "Youssef K.", amount: 35, date: "2 days ago", status: "Delivered" },
-    { id: 1226, product: "Gaming Mouse", buyer: "Mona M.", amount: 89, date: "3 days ago", status: "Delivered" },
-  ]);
+      // Calculate stats
+      const newStats = {
+        totalOrders: orders.length,
+        pending: orders.filter(o => o.status === 'Pending').length,
+        processing: orders.filter(o => o.status === 'Accepted' || o.status === 'Shipped').length,
+        completed: orders.filter(o => o.status === 'Delivered').length
+      };
+      setStats(newStats);
+
+      // Get pending orders (limit 3)
+      const pending = orders
+        .filter(o => o.status === 'Pending' || o.status === 'Accepted')
+        .slice(0, 3)
+        .map(mapOrderToDisplay);
+      setPendingOrders(pending);
+
+      // Get recent completed (limit 3)
+      const completed = orders
+        .filter(o => o.status === 'Delivered')
+        .slice(0, 3)
+        .map(mapOrderToDisplay);
+      setRecentCompleted(completed);
+
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const mapOrderToDisplay = (order) => ({
+    id: order._id || order.id,
+    product: order.items?.[0]?.itemId?.title || 'Product',
+    qty: order.items?.[0]?.quantity || 1,
+    buyer: order.buyerId?.name || 'Customer',
+    amount: order.totalPrice || 0,
+    date: new Date(order.createdAt).toLocaleDateString(),
+    status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Processing' : order.status
+  });
 
   return (
     <div className="seller-app">
@@ -125,8 +176,8 @@ function Orders() {
                     <td className="amount">${order.amount}</td>
                     <td><span className="status-badge pending">{order.status}</span></td>
                     <td>
-                      <button className="action-btn-small ship">
-                        <i className="fas fa-truck"></i> Ship
+                      <button className="action-btn-small ship" onClick={() => handleShipNow(order.id)}>
+                        <i className="fas fa-shipping-fast"></i> Ship Now
                       </button>
                     </td>
                   </tr>

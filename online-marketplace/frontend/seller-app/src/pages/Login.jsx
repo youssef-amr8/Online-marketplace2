@@ -64,7 +64,7 @@ const Login = () => {
       }));
 
       setIsLoading(false);
-      navigate('/');
+      navigate('/dashboard');
 
     } catch (err) {
       console.error('Login error:', err);
@@ -144,7 +144,7 @@ const Login = () => {
 
       alert(`Account created successfully! Welcome ${userData.name || 'Seller'}`);
       setIsLoading(false);
-      navigate('/');
+      navigate('/dashboard');
 
     } catch (err) {
       console.error('Signup error:', err);

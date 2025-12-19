@@ -11,14 +11,14 @@ exports.createOrder = async ({ buyerId, items }) => {
     if (doc.stock < i.quantity) throw new Error(`Insufficient stock for ${doc.title}. Available: ${doc.stock}, Requested: ${i.quantity}`);
     return { itemId: doc._id, quantity: i.quantity, price: doc.price };
   });
-  
+
   // Reduce stock for each item
   for (const item of itemsSnapshot) {
     const itemDoc = itemDocs.find(d => d._id.equals(item.itemId));
     itemDoc.stock -= item.quantity;
     await itemDoc.save();
   }
-  
+
   const totalPrice = itemsSnapshot.reduce((s, it) => s + it.quantity * it.price, 0);
   // sellerId: for simplicity assume one seller; real-case you might split per seller
   const sellerId = itemDocs[0].sellerId;
@@ -26,11 +26,21 @@ exports.createOrder = async ({ buyerId, items }) => {
   return order;
 };
 
-exports.updateStatus = async (orderId, sellerId, status) => {
+exports.updateStatus = async (orderId, userId, status) => {
   const order = await Order.findById(orderId);
   if (!order) throw new Error('Order not found');
-  if (!order.sellerId.equals(sellerId)) throw new Error('Not authorized');
-  order.status = status;
+
+  const isSeller = order.sellerId.equals(userId);
+  const isBuyer = order.buyerId.equals(userId);
+
+  if (isSeller) {
+    order.status = status;
+  } else if (isBuyer && status === 'Delivered') {
+    order.status = 'Delivered';
+  } else {
+    throw new Error('Not authorized');
+  }
+
   await order.save();
   return order;
 };

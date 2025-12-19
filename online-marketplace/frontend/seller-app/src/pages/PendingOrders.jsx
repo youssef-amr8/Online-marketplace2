@@ -41,23 +41,37 @@ function PendingOrders() {
 
   const handleProcess = async (orderId) => {
     try {
-      await updateOrderStatus(orderId, 'Accepted'); // Change to Processing
-      await fetchOrders(); // Refresh orders
+      await updateOrderStatus(orderId, 'Accepted'); // User wants "Processing"
+      await fetchOrders();
       alert(`Order #${orderId} is now processing!`);
     } catch (error) {
       console.error('Error updating order:', error);
-      alert('Failed to update order status. Please try again.');
+      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
+      alert(`Error: ${msg}`);
     }
   };
 
   const handleShip = async (orderId) => {
     try {
-      await updateOrderStatus(orderId, 'Shipped');
-      await fetchOrders(); // Refresh orders
-      alert(`Order #${orderId} marked as shipped successfully!`);
+      await updateOrderStatus(orderId, 'Shipped'); // User defined "Ship" action
+      await fetchOrders();
+      alert(`Order #${orderId} marked as shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
-      alert('Failed to update order status. Please try again.');
+      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
+      alert(`Error: ${msg}`);
+    }
+  };
+
+  const handleDelivered = async (orderId) => { // User wants movement to history
+    try {
+      await updateOrderStatus(orderId, 'Delivered');
+      await fetchOrders();
+      alert(`Order #${orderId} marked as delivered! It will move to History.`);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
+      alert(`Error: ${msg}`);
     }
   };
 
@@ -68,9 +82,14 @@ function PendingOrders() {
   };
 
   const filteredOrders = pendingOrders.filter(order => {
+    // Only show active orders in this view
+    const isActive = ['Pending', 'Accepted', 'Shipped'].includes(order.status);
+    if (!isActive) return false;
+
     const matchesFilter = filter === "all" ||
       (filter === "awaiting" && order.status === "Pending") ||
-      (filter === "processing" && order.status === "Accepted");
+      (filter === "processing" && order.status === "Accepted") ||
+      (filter === "shipped" && order.status === "Shipped");
     const matchesSearch = order.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.buyer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toString().includes(searchTerm);
@@ -79,6 +98,7 @@ function PendingOrders() {
 
   const awaitingCount = pendingOrders.filter(o => o.status === "Pending").length;
   const processingCount = pendingOrders.filter(o => o.status === "Accepted").length;
+  const shippedCount = pendingOrders.filter(o => o.status === "Shipped").length;
 
   return (
     <div className="seller-app">
@@ -120,6 +140,12 @@ function PendingOrders() {
                 onClick={() => setFilter("processing")}
               >
                 <i className="fas fa-cog"></i> Processing ({processingCount})
+              </button>
+              <button
+                className={`filter-tab ${filter === "shipped" ? "active" : ""}`}
+                onClick={() => setFilter("shipped")}
+              >
+                <i className="fas fa-truck-moving"></i> Shipped ({shippedCount})
               </button>
             </div>
             <div className="search-box">
@@ -182,18 +208,18 @@ function PendingOrders() {
                   <div className="order-actions">
                     {order.isFromDB && order.status === 'Pending' && (
                       <button className="btn-ship" onClick={() => handleProcess(order.id)}>
-                        <i className="fas fa-cog"></i> Start Processing
+                        <i className="fas fa-shipping-fast"></i> Ship Now
                       </button>
                     )}
                     {order.isFromDB && order.status === 'Accepted' && (
                       <button className="btn-ship" onClick={() => handleShip(order.id)}>
-                        <i className="fas fa-truck"></i> Mark as Shipped
+                        <i className="fas fa-truck"></i> Ship Order
                       </button>
                     )}
-                    {order.status === 'Shipped' && (
-                      <span className="shipped-badge">
-                        <i className="fas fa-check-circle"></i> Shipped Successfully
-                      </span>
+                    {order.isFromDB && order.status === 'Shipped' && (
+                      <button className="btn-ship" onClick={() => handleDelivered(order.id)}>
+                        <i className="fas fa-check-circle"></i> Complete Order
+                      </button>
                     )}
                     {order.isFromDB && order.status !== 'Shipped' && (
                       <button className="btn-cancel" onClick={() => handleCancel(order.id)}>
@@ -207,7 +233,7 @@ function PendingOrders() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Modal from '../common/Modal';
+import commentService from '../../services/commentService';
 
-function OrderCard({ order }) {
+function OrderCard({ order, onConfirmDelivery }) {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
   const [comment, setComment] = useState('');
@@ -24,7 +25,8 @@ function OrderCard({ order }) {
 
   const getStatusDisplay = (status) => {
     const statusMap = {
-      pending: { title: 'Order Pending', description: 'Your order is being processed', step: 1 },
+      pending: { title: 'Order Pending', description: 'Your order is being processed (Awaiting Shipment)', step: 1 },
+      accepted: { title: 'Processing', description: 'Your order is being prepared for shipment', step: 2 },
       processing: { title: 'Processing', description: 'Your order is being prepared for shipment', step: 2 },
       shipped: { title: 'Shipped', description: 'Your order has been shipped', step: 3 },
       delivered: { title: 'Delivered', description: 'Your order has been delivered', step: 4 },
@@ -36,26 +38,20 @@ function OrderCard({ order }) {
 
   const [selectedProductForComment, setSelectedProductForComment] = useState(order.items?.[0]?.id || null);
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (comment.trim() && selectedProductForComment) {
-      const existingComments = JSON.parse(localStorage.getItem('product_comments') || '{}');
-      const productComments = existingComments[selectedProductForComment] || [];
+      try {
+        await commentService.addComment(selectedProductForComment, comment, rating || 5, order.id);
 
-      const newComment = {
-        id: Date.now(),
-        text: comment,
-        date: new Date().toISOString(),
-        author: order.fullName || 'Verified Buyer', // Use order name or fallback
-        rating: 5 // Default or link to rating modal
-      };
-
-      existingComments[selectedProductForComment] = [newComment, ...productComments];
-      localStorage.setItem('product_comments', JSON.stringify(existingComments));
-
-      console.log('Submitted comment for product', selectedProductForComment, ':', comment);
-      setComment('');
-      setActiveModal(null);
-      window.alert('Comment added successfully! It will now appear on the product page.');
+        console.log('Submitted comment for product', selectedProductForComment, ':', comment);
+        setComment('');
+        setRating(0);
+        setActiveModal(null);
+        window.alert('Comment added successfully! It will now appear on the product page.');
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+        window.alert('Failed to submit comment. Please try again.');
+      }
     }
   };
 
@@ -197,7 +193,19 @@ function OrderCard({ order }) {
         actions: (
           <>
             <button className="amazon-btn amazon-btn-secondary" onClick={() => setActiveModal(null)}>Cancel</button>
-            <button className="amazon-btn amazon-btn-primary" onClick={handleSubmitComment} disabled={!comment.trim()}>Submit Review</button>
+            <div style={{ margin: '10px 0' }}>
+              <span style={{ marginRight: '10px' }}>Rating:</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  onClick={() => setRating(star)}
+                  style={{ cursor: 'pointer', color: star <= rating ? '#ffc107' : '#e4e5e9', fontSize: '20px' }}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <button className="amazon-btn amazon-btn-primary" onClick={handleSubmitComment} disabled={!comment.trim() || rating === 0}>Submit Review</button>
           </>
         )
       };
@@ -274,6 +282,14 @@ function OrderCard({ order }) {
               setActiveModal('comment');
             }}>Write Product Review</button>
             <button className="amazon-btn amazon-btn-secondary" onClick={() => setActiveModal('rate')}>Rate Seller</button>
+            <button
+              className={`amazon-btn ${order.status === 'pending' ? 'amazon-btn-disabled' : 'amazon-btn-primary'}`}
+              disabled={order.status === 'pending'}
+              onClick={onConfirmDelivery}
+              style={{ marginLeft: 'auto', backgroundColor: order.status === 'pending' ? '#ccc' : '#ffd814', borderColor: order.status === 'pending' ? '#ccc' : '#FCD200' }}
+            >
+              Confirm Delivery
+            </button>
           </div>
         </div>
       </div>

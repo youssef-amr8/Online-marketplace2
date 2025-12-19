@@ -45,7 +45,7 @@ function Sidebar() {
       <ul className="sidebar-menu">
         <li>
           <Link
-            to="/"
+            to="/dashboard"
             className={`sidebar-link ${location.pathname === "/" ? "active" : ""}`}
           >
             <i className="fas fa-chart-line"></i> Dashboard

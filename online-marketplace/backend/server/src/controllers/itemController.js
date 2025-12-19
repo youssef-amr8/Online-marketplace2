@@ -6,12 +6,18 @@ exports.createItem = async (req, res) => {
     const data = req.body;
     // JWT token contains 'id', not '_id'
     const sellerId = req.user.id || req.user._id;
+    console.log('[DEBUG] createItem - User from token:', req.user);
+    console.log('[DEBUG] createItem - Extracted sellerId:', sellerId);
     if (!sellerId) {
       return error(res, 'Seller ID not found in token', 401);
     }
     const item = await itemService.createItem(data, sellerId);
+    console.log('[DEBUG] createItem - Created Item:', item);
     success(res, item, 201);
-  } catch (err) { error(res, err.message, 400); }
+  } catch (err) {
+    console.error('[DEBUG] createItem - Error:', err);
+    error(res, err.message, 400);
+  }
 };
 
 exports.listItems = async (req, res) => {
@@ -39,13 +45,19 @@ exports.getSellerItems = async (req, res) => {
   try {
     // JWT token contains 'id', not '_id'
     const sellerId = req.user.id || req.user._id;
+    console.log('[DEBUG] getSellerItems - User from token:', req.user);
+    console.log('[DEBUG] getSellerItems - Extracted sellerId:', sellerId);
     if (!sellerId) {
       return error(res, 'Seller ID not found in token', 401);
     }
     const { page, limit } = req.query;
     const result = await itemService.getSellerItems(sellerId, {}, { page: +page || 1, limit: +limit || 20 });
+    console.log(`[DEBUG] getSellerItems - Found ${result.items.length} items for seller ${sellerId}`);
     success(res, result);
-  } catch (err) { error(res, err.message); }
+  } catch (err) {
+    console.error('[DEBUG] getSellerItems - Error:', err);
+    error(res, err.message);
+  }
 };
 
 exports.deleteItem = async (req, res) => {
