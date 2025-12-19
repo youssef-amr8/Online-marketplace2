@@ -62,16 +62,19 @@ function AddProduct() {
 
       const response = await createItem(itemData);
 
-      if (response && response.data) {
+      // Handle response structure: response.data contains the item
+      const item = response?.data || response;
+      
+      if (item && (item._id || item.id)) {
         const newProduct = {
-          id: response.data._id || response.data.id,
+          id: item._id || item.id,
           category,
           subcategory: activeSubcategory?.name || '',
-          image: response.data.images?.[0] || imagePreview || activeSubcategory?.image || '',
-          name: response.data.title || productName,
-          price: response.data.price,
-          stock: response.data.stock,
-          description: response.data.description,
+          image: item.images?.[0] || imagePreview || activeSubcategory?.image || '',
+          name: item.title || productName,
+          price: item.price,
+          stock: item.stock,
+          description: item.description,
         };
 
         setAddedProducts([newProduct, ...addedProducts]);
@@ -89,7 +92,20 @@ function AddProduct() {
       }
     } catch (error) {
       console.error('Error adding product:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to add product. Please try again.';
+      let errorMessage = 'Failed to add product. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.message) {
+        errorMessage = error.response.message;
+      }
+      
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Network')) {
+        errorMessage = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
+      }
+      
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);

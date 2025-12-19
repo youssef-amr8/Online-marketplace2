@@ -20,7 +20,10 @@ export const updateOrderStatus = async (orderId, status) => {
     return response.data;
   } catch (error) {
     console.error('Error updating order status:', error);
-    throw error;
+    const errorMsg = error.response?.data?.message || error.message || 'Failed to update order status';
+    const enhancedError = new Error(errorMsg);
+    enhancedError.response = error.response;
+    throw enhancedError;
   }
 };
 

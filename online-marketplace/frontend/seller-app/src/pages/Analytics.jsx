@@ -1,6 +1,7 @@
 import Sidebar from "../components/Sidebar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getSellerOrders } from "../services/orderService";
 import "./Analytics.css";
 
 function Analytics() {
@@ -8,41 +9,17 @@ function Analytics() {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [timeRange, setTimeRange] = useState("week");
-
-    // Sample analytics data
-    const [analytics] = useState({
-        totalSales: 156,
-        totalRevenue: 8750,
-        averageOrder: 56.09,
-        conversionRate: 3.2,
-        pageViews: 4523,
-        uniqueVisitors: 1892,
+    const [analytics, setAnalytics] = useState({
+        totalSales: 0,
+        totalRevenue: 0,
+        averageOrder: 0,
+        conversionRate: 0,
+        pageViews: 0,
+        uniqueVisitors: 0,
     });
-
-    const dailySales = [
-        { day: "Mon", sales: 12, revenue: 580 },
-        { day: "Tue", sales: 8, revenue: 420 },
-        { day: "Wed", sales: 15, revenue: 890 },
-        { day: "Thu", sales: 10, revenue: 540 },
-        { day: "Fri", sales: 18, revenue: 1050 },
-        { day: "Sat", sales: 22, revenue: 1340 },
-        { day: "Sun", sales: 14, revenue: 780 },
-    ];
-
-    const topCategories = [
-        { name: "Electronics", sales: 45, percentage: 35 },
-        { name: "Gaming", sales: 32, percentage: 25 },
-        { name: "Accessories", sales: 28, percentage: 22 },
-        { name: "Home & Garden", sales: 23, percentage: 18 },
-    ];
-
-    const recentTransactions = [
-        { id: 1, product: "Wireless Earbuds Pro", customer: "Ahmed Hassan", amount: 89, status: "completed", date: "Today" },
-        { id: 2, product: "Smart Watch Series X", customer: "Sara Mohamed", amount: 199, status: "completed", date: "Today" },
-        { id: 3, product: "Bluetooth Speaker", customer: "Omar Ali", amount: 65, status: "pending", date: "Yesterday" },
-        { id: 4, product: "Laptop Stand Pro", customer: "Laila Ahmed", amount: 45, status: "completed", date: "Yesterday" },
-        { id: 5, product: "USB-C Hub", customer: "Youssef Khaled", amount: 35, status: "refunded", date: "2 days ago" },
-    ];
+    const [dailySales, setDailySales] = useState([]);
+    const [topCategories, setTopCategories] = useState([]);
+    const [recentTransactions, setRecentTransactions] = useState([]);
 
     useEffect(() => {
         const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -51,8 +28,129 @@ function Analytics() {
         } else {
             navigate("/login");
         }
-        setIsLoading(false);
-    }, [navigate]);
+        fetchAnalyticsData();
+    }, [navigate, timeRange]);
+
+    const fetchAnalyticsData = async () => {
+        try {
+            setIsLoading(true);
+            const orders = await getSellerOrders();
+            
+            // Filter orders based on time range
+            const now = new Date();
+            let startDate = new Date();
+            if (timeRange === "day") {
+                startDate.setHours(0, 0, 0, 0);
+            } else if (timeRange === "week") {
+                startDate.setDate(now.getDate() - 7);
+            } else if (timeRange === "month") {
+                startDate.setMonth(now.getMonth() - 1);
+            }
+            
+            const filteredOrders = orders.filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate >= startDate;
+            });
+
+            // Calculate analytics
+            const totalSales = filteredOrders.length;
+            const totalRevenue = filteredOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+            const averageOrder = totalSales > 0 ? totalRevenue / totalSales : 0;
+            const completedOrders = filteredOrders.filter(o => o.status === 'Delivered').length;
+            const conversionRate = totalSales > 0 ? (completedOrders / totalSales) * 100 : 0;
+
+            setAnalytics({
+                totalSales,
+                totalRevenue,
+                averageOrder: averageOrder.toFixed(2),
+                conversionRate: conversionRate.toFixed(1),
+                pageViews: 0, // Not tracked yet
+                uniqueVisitors: 0, // Not tracked yet
+            });
+
+            // Calculate daily sales for last 7 days
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dailyData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                const nextDate = new Date(date);
+                nextDate.setDate(nextDate.getDate() + 1);
+                
+                const dayOrders = filteredOrders.filter(order => {
+                    const orderDate = new Date(order.createdAt);
+                    return orderDate >= date && orderDate < nextDate;
+                });
+                
+                dailyData.push({
+                    day: days[date.getDay()],
+                    sales: dayOrders.length,
+                    revenue: dayOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+                });
+            }
+            setDailySales(dailyData);
+
+            // Calculate top categories
+            const categoryMap = {};
+            filteredOrders.forEach(order => {
+                order.items?.forEach(item => {
+                    const category = item.itemId?.category || 'Other';
+                    if (!categoryMap[category]) {
+                        categoryMap[category] = { sales: 0, revenue: 0 };
+                    }
+                    categoryMap[category].sales += item.quantity;
+                    categoryMap[category].revenue += (item.price * item.quantity);
+                });
+            });
+            
+            const categories = Object.entries(categoryMap)
+                .map(([name, data]) => ({
+                    name,
+                    sales: data.sales,
+                    revenue: data.revenue
+                }))
+                .sort((a, b) => b.sales - a.sales)
+                .slice(0, 4);
+            
+            const totalCategorySales = categories.reduce((sum, c) => sum + c.sales, 0);
+            const categoriesWithPercentage = categories.map(cat => ({
+                ...cat,
+                percentage: totalCategorySales > 0 ? Math.round((cat.sales / totalCategorySales) * 100) : 0
+            }));
+            setTopCategories(categoriesWithPercentage);
+
+            // Recent transactions
+            const transactions = filteredOrders
+                .slice(0, 5)
+                .map(order => ({
+                    id: order._id,
+                    product: order.items?.[0]?.itemId?.title || 'Product',
+                    customer: order.buyerId?.name || 'Customer',
+                    amount: order.totalPrice || 0,
+                    status: order.status === 'Delivered' ? 'completed' : order.status.toLowerCase(),
+                    date: formatDate(order.createdAt)
+                }));
+            setRecentTransactions(transactions);
+
+        } catch (error) {
+            console.error('Error fetching analytics:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffDays === 0) return "Today";
+        if (diffDays === 1) return "Yesterday";
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString();
+    };
 
     if (isLoading) {
         return (

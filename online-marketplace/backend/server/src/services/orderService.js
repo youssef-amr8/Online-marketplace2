@@ -30,8 +30,13 @@ exports.updateStatus = async (orderId, userId, status) => {
   const order = await Order.findById(orderId);
   if (!order) throw new Error('Order not found');
 
-  const isSeller = order.sellerId.equals(userId);
-  const isBuyer = order.buyerId.equals(userId);
+  // Convert userId to string for comparison (handles both ObjectId and string)
+  const userIdStr = userId.toString();
+  const sellerIdStr = order.sellerId.toString();
+  const buyerIdStr = order.buyerId.toString();
+
+  const isSeller = sellerIdStr === userIdStr;
+  const isBuyer = buyerIdStr === userIdStr;
 
   if (isSeller) {
     order.status = status;
@@ -47,7 +52,7 @@ exports.updateStatus = async (orderId, userId, status) => {
 
 exports.getBuyerOrders = async (buyerId) => {
   const orders = await Order.find({ buyerId })
-    .populate('sellerId', 'name email sellerProfile')
+    .populate('sellerId', '_id name email sellerProfile')
     .populate('items.itemId', 'title images price')
     .sort({ createdAt: -1 });
   return orders;

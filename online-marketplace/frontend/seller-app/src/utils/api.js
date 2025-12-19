@@ -1,6 +1,10 @@
 // Simple API utility for seller app
 // For Vite, use import.meta.env, but we'll use a fallback for compatibility
-const BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+// Use localhost explicitly for local development to avoid hostname resolution issues
+const BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3000' 
+    : `http://${window.location.hostname}:3000`);
 
 export const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
@@ -22,7 +26,24 @@ export const apiRequest = async (endpoint, options = {}) => {
     }
   };
 
-  const response = await fetch(`${BASE_URL}/api${endpoint}`, config);
+  const fullUrl = `${BASE_URL}/api${endpoint}`;
+  console.log(`🌐 API Request: ${config.method || 'GET'} ${fullUrl}`);
+  
+  let response;
+  try {
+    response = await fetch(fullUrl, config);
+  } catch (networkError) {
+    // Handle network errors (backend not running, CORS issues, etc.)
+    console.error('❌ Network error:', networkError);
+    console.error(`Failed to connect to: ${fullUrl}`);
+    console.error('Make sure the backend server is running on port 3000');
+    const error = new Error('Cannot connect to server. Please make sure the backend is running on port 3000.');
+    error.response = { 
+      data: { message: 'Cannot connect to server. Please make sure the backend is running on port 3000.' }, 
+      status: 0 
+    };
+    throw error;
+  }
   
   let responseData;
   try {

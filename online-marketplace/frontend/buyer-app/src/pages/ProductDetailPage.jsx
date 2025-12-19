@@ -469,7 +469,7 @@ const ProductDetailPage = () => {
             </div>
           )}
         </div>
-      </div >
+      </div>
     </div >
   );
 };

@@ -1,7 +1,9 @@
 import Sidebar from "../components/Sidebar";
+import Modal from "../components/Modal";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getSellerOrders, updateOrderStatus } from "../services/orderService";
+import { flagBuyer } from "../services/flagService";
 import "./PageStyles.css";
 
 function Orders() {
@@ -17,6 +19,10 @@ function Orders() {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [recentCompleted, setRecentCompleted] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [flagReason, setFlagReason] = useState("");
+  const [submittingFlag, setSubmittingFlag] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -29,7 +35,19 @@ function Orders() {
       alert(`Order #${orderId} marked as Shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
-      const msg = error.response?.data?.message || error.message || 'Failed to update order.';
+      let msg = 'Failed to update order.';
+      if (error.message) {
+        msg = error.message;
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (typeof error === 'string') {
+        msg = error;
+      }
+      
+      if (msg.includes('Failed to fetch') || msg.includes('Network')) {
+        msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
+      }
+      
       alert(`Error: ${msg}`);
     }
   };
@@ -74,10 +92,43 @@ function Orders() {
     product: order.items?.[0]?.itemId?.title || 'Product',
     qty: order.items?.[0]?.quantity || 1,
     buyer: order.buyerId?.name || 'Customer',
+    buyerId: order.buyerId?._id || order.buyerId,
     amount: order.totalPrice || 0,
     date: new Date(order.createdAt).toLocaleDateString(),
     status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
   });
+
+  const handleFlagBuyer = async () => {
+    if (!flagReason.trim()) {
+      alert("Please describe the problem you faced");
+      return;
+    }
+
+    if (!selectedOrder || !selectedOrder.buyerId) {
+      alert("Unable to identify buyer. Please try again later.");
+      return;
+    }
+
+    setSubmittingFlag(true);
+    try {
+      await flagBuyer(selectedOrder.buyerId, flagReason, selectedOrder.id);
+      alert("Thank you for reporting this issue. We will review it shortly.");
+      setShowFlagModal(false);
+      setFlagReason("");
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error("Error flagging buyer:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to submit flag";
+      alert(`Failed to submit flag: ${errorMsg}`);
+    } finally {
+      setSubmittingFlag(false);
+    }
+  };
+
+  const openFlagModal = (order) => {
+    setSelectedOrder(order);
+    setShowFlagModal(true);
+  };
 
   return (
     <div className="seller-app">
@@ -176,9 +227,36 @@ function Orders() {
                     <td className="amount">${order.amount}</td>
                     <td><span className="status-badge pending">{order.status}</span></td>
                     <td>
-                      <button className="action-btn-small ship" onClick={() => handleShipNow(order.id)}>
-                        <i className="fas fa-shipping-fast"></i> Ship Now
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        {order.status === 'Pending' ? (
+                          <button className="action-btn-small ship" onClick={() => handleShipNow(order.id)}>
+                            <i className="fas fa-shipping-fast"></i> Ship Now
+                          </button>
+                        ) : (
+                          <button className="action-btn-small" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>
+                            <i className="fas fa-truck"></i> {order.status === 'Shipped' ? 'Shipped' : 'Processing'}
+                          </button>
+                        )}
+                        <button
+                          className="action-btn-small"
+                          onClick={() => openFlagModal(order)}
+                          style={{
+                            backgroundColor: '#ff6b6b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span>🚩</span>
+                          <span>Flag</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -216,7 +294,29 @@ function Orders() {
                     <td>{order.buyer}</td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
-                    <td><span className="status-badge completed">{order.status}</span></td>
+                    <td>
+                      <span className="status-badge completed">{order.status}</span>
+                      <button
+                        className="action-btn-small"
+                        onClick={() => openFlagModal(order)}
+                        style={{
+                          backgroundColor: '#ff6b6b',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '8px'
+                        }}
+                      >
+                        <span>🚩</span>
+                        <span>Flag</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -224,6 +324,66 @@ function Orders() {
           </div>
         </div>
       </div>
+
+      {/* Flag Buyer Modal */}
+      <Modal
+        isOpen={showFlagModal}
+        onClose={() => {
+          setShowFlagModal(false);
+          setFlagReason("");
+          setSelectedOrder(null);
+        }}
+        title="Flag Buyer"
+        actions={
+          <>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setShowFlagModal(false);
+                setFlagReason("");
+                setSelectedOrder(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleFlagBuyer}
+              disabled={submittingFlag || !flagReason.trim()}
+            >
+              {submittingFlag ? "Submitting..." : "Submit Flag"}
+            </button>
+          </>
+        }
+      >
+        <div style={{ padding: '20px' }}>
+          <p style={{ marginBottom: '15px', fontSize: '16px' }}>
+            <strong>What problem did you face with this buyer?</strong>
+          </p>
+          {selectedOrder && (
+            <p style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+              Buyer: {selectedOrder.buyer} (Order #{selectedOrder.id})
+            </p>
+          )}
+          <textarea
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            placeholder="Please describe the issue you encountered..."
+            rows={6}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+          <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+            Your report will be reviewed by our team. We take all reports seriously.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -129,6 +129,7 @@ export const ProductProvider = ({ children }) => {
                 delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
                 category: item.category,
                 seller: item.sellerId,
+                sellerId: item.sellerId?._id || item.sellerId, // Store sellerId for easy access
                 brand: item.sellerId?.name || 'Brand'
             };
         } catch (err) {

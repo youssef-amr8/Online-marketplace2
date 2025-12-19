@@ -151,7 +151,7 @@ const CheckoutPage = () => {
         alert(
           `Order placed successfully!\n\nOrder ID: ${order._id || order.id}\nOrder Total: EGP ${formatPrice(
             order.totalPrice || calculateTotal()
-          )}\n\nThank you for your purchase!`
+          )}\n\nYour order will be shipped in 3-6 business days.\n\nThank you for your purchase!`
         );
 
         // Clear cart and navigate to orders page

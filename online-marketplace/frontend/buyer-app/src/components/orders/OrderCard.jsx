@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Modal from '../common/Modal';
 import commentService from '../../services/commentService';
+import flagService from '../../services/flagService';
 
 function OrderCard({ order, onConfirmDelivery }) {
   const navigate = useNavigate();
@@ -9,6 +10,9 @@ function OrderCard({ order, onConfirmDelivery }) {
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [flagReason, setFlagReason] = useState('');
+  const [submittingFlag, setSubmittingFlag] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -65,11 +69,94 @@ function OrderCard({ order, onConfirmDelivery }) {
     }
   };
 
+  const handleFlagSeller = async () => {
+    if (!flagReason.trim()) {
+      alert("Please describe the problem you faced");
+      return;
+    }
+
+    // Extract sellerId - handle multiple possible formats
+    // The sellerId should already be extracted as a string in OrdersPage.jsx
+    // But we'll add extra safety checks here
+    let sellerId = order.sellerId;
+    
+    // If it's still an object, extract the ID
+    if (sellerId && typeof sellerId === 'object') {
+      sellerId = sellerId._id || sellerId.id || (sellerId.toString ? String(sellerId) : null);
+    }
+    
+    // Convert to string if not already
+    if (sellerId && typeof sellerId !== 'string') {
+      sellerId = String(sellerId);
+    }
+
+    console.log('🔍 Flag Seller Debug:', {
+      orderId: order.id,
+      sellerIdRaw: order.sellerId,
+      sellerIdExtracted: sellerId,
+      sellerIdType: typeof order.sellerId,
+      fullOrder: order
+    });
+
+    if (!sellerId || sellerId === 'null' || sellerId === 'undefined') {
+      console.error('❌ SellerId not found in order:', {
+        orderId: order.id,
+        sellerId: order.sellerId,
+        orderKeys: Object.keys(order)
+      });
+      alert("Unable to identify seller. Please try again later. Check console for details.");
+      return;
+    }
+
+    setSubmittingFlag(true);
+    try {
+      console.log('🚩 Submitting flag with sellerId:', sellerId);
+      await flagService.flagSeller(sellerId, flagReason, order.id);
+      alert("Thank you for reporting this issue. We will review it shortly.");
+      setShowFlagModal(false);
+      setFlagReason("");
+    } catch (error) {
+      console.error("❌ Error flagging seller:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to submit flag";
+      alert(`Failed to submit flag: ${errorMsg}`);
+    } finally {
+      setSubmittingFlag(false);
+    }
+  };
+
+  const renderFlagModal = () => (
+    <div style={{ padding: '20px' }}>
+      <p style={{ marginBottom: '15px', fontSize: '16px' }}>
+        <strong>What problem did you face with this seller?</strong>
+      </p>
+      <p style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+        Order #{order.orderId ? order.orderId.substring(0, 8) : 'N/A'}
+      </p>
+      <textarea
+        value={flagReason}
+        onChange={(e) => setFlagReason(e.target.value)}
+        placeholder="Please describe the issue you encountered..."
+        rows={6}
+        style={{
+          width: '100%',
+          padding: '10px',
+          borderRadius: '4px',
+          border: '1px solid #ddd',
+          fontSize: '14px',
+          fontFamily: 'inherit'
+        }}
+      />
+      <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+        Your report will be reviewed by our team. We take all reports seriously.
+      </p>
+    </div>
+  );
+
   const renderTrackingModal = () => (
     <div className="tracking-modal">
       <div className="tracking-info">
         <p><strong>Tracking Number:</strong> TRK{order.orderId ? order.orderId.substring(0, 8).toUpperCase() : 'UNKNOWN'}</p>
-        <p><strong>Estimated Delivery:</strong> 3-5 business days</p>
+        <p><strong>Estimated Delivery:</strong> Your order will be shipped in 3-6 business days</p>
       </div>
       <div className="tracking-steps">
         {['Order Placed', 'Shipped', 'Delivered'].map((step, index) => {
@@ -282,14 +369,29 @@ function OrderCard({ order, onConfirmDelivery }) {
               setActiveModal('comment');
             }}>Write Product Review</button>
             <button className="amazon-btn amazon-btn-secondary" onClick={() => setActiveModal('rate')}>Rate Seller</button>
-            <button
-              className={`amazon-btn ${order.status === 'pending' ? 'amazon-btn-disabled' : 'amazon-btn-primary'}`}
-              disabled={order.status === 'pending'}
-              onClick={onConfirmDelivery}
-              style={{ marginLeft: 'auto', backgroundColor: order.status === 'pending' ? '#ccc' : '#ffd814', borderColor: order.status === 'pending' ? '#ccc' : '#FCD200' }}
-            >
-              Confirm Delivery
-            </button>
+            {order.status !== 'delivered' && (
+              <button
+                className="amazon-btn amazon-btn-secondary"
+                onClick={() => setShowFlagModal(true)}
+                style={{
+                  backgroundColor: '#ff6b6b',
+                  color: 'white',
+                  border: 'none'
+                }}
+              >
+                🚩 Flag Seller
+              </button>
+            )}
+            {order.status !== 'delivered' && (
+              <button
+                className={`amazon-btn ${order.status === 'pending' ? 'amazon-btn-disabled' : 'amazon-btn-primary'}`}
+                disabled={order.status === 'pending'}
+                onClick={onConfirmDelivery}
+                style={{ marginLeft: 'auto', backgroundColor: order.status === 'pending' ? '#ccc' : '#ffd814', borderColor: order.status === 'pending' ? '#ccc' : '#FCD200' }}
+              >
+                Confirm Delivery
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -302,6 +404,41 @@ function OrderCard({ order, onConfirmDelivery }) {
           actions={modalData?.actions}
         >
           {modalData?.content}
+        </Modal>
+      )}
+
+      {/* Flag Seller Modal */}
+      {showFlagModal && (
+        <Modal
+          isOpen={showFlagModal}
+          onClose={() => {
+            setShowFlagModal(false);
+            setFlagReason("");
+          }}
+          title="Flag Seller"
+          actions={
+            <>
+              <button
+                className="amazon-btn amazon-btn-secondary"
+                onClick={() => {
+                  setShowFlagModal(false);
+                  setFlagReason("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="amazon-btn amazon-btn-primary"
+                onClick={handleFlagSeller}
+                disabled={submittingFlag || !flagReason.trim()}
+                style={{ backgroundColor: '#ff6b6b' }}
+              >
+                {submittingFlag ? "Submitting..." : "Submit Flag"}
+              </button>
+            </>
+          }
+        >
+          {renderFlagModal()}
         </Modal>
       )}
     </>

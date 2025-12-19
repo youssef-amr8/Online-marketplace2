@@ -1,7 +1,9 @@
 import Sidebar from "../components/Sidebar";
+import Modal from "../components/Modal";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getSellerOrders, updateOrderStatus } from "../services/orderService";
+import { flagBuyer } from "../services/flagService";
 import "./PageStyles.css";
 
 function PendingOrders() {
@@ -9,6 +11,10 @@ function PendingOrders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pendingOrders, setPendingOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [flagReason, setFlagReason] = useState("");
+  const [submittingFlag, setSubmittingFlag] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -23,6 +29,7 @@ function PendingOrders() {
         product: order.items?.[0]?.itemId?.title || 'Product',
         qty: order.items?.[0]?.quantity || 1,
         buyer: order.buyerId?.name || 'Customer',
+        buyerId: order.buyerId?._id || order.buyerId,
         email: order.buyerId?.email || '',
         amount: order.totalPrice || 0,
         date: new Date(order.createdAt).toLocaleDateString(),
@@ -46,7 +53,19 @@ function PendingOrders() {
       alert(`Order #${orderId} is now Shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
-      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
+      let msg = 'Failed to update order status.';
+      if (error.message) {
+        msg = error.message;
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (typeof error === 'string') {
+        msg = error;
+      }
+      
+      if (msg.includes('Failed to fetch') || msg.includes('Network')) {
+        msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
+      }
+      
       alert(`Error: ${msg}`);
     }
   };
@@ -58,7 +77,19 @@ function PendingOrders() {
       alert(`Order #${orderId} marked as shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
-      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
+      let msg = 'Failed to update order status.';
+      if (error.message) {
+        msg = error.message;
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (typeof error === 'string') {
+        msg = error;
+      }
+      
+      if (msg.includes('Failed to fetch') || msg.includes('Network')) {
+        msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
+      }
+      
       alert(`Error: ${msg}`);
     }
   };
@@ -69,6 +100,38 @@ function PendingOrders() {
     if (window.confirm(`Are you sure you want to cancel order #${orderId}?`)) {
       setPendingOrders(pendingOrders.filter(o => o.id !== orderId));
     }
+  };
+
+  const handleFlagBuyer = async () => {
+    if (!flagReason.trim()) {
+      alert("Please describe the problem you faced");
+      return;
+    }
+
+    if (!selectedOrder || !selectedOrder.buyerId) {
+      alert("Unable to identify buyer. Please try again later.");
+      return;
+    }
+
+    setSubmittingFlag(true);
+    try {
+      await flagBuyer(selectedOrder.buyerId, flagReason, selectedOrder.id);
+      alert("Thank you for reporting this issue. We will review it shortly.");
+      setShowFlagModal(false);
+      setFlagReason("");
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error("Error flagging buyer:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to submit flag";
+      alert(`Failed to submit flag: ${errorMsg}`);
+    } finally {
+      setSubmittingFlag(false);
+    }
+  };
+
+  const openFlagModal = (order) => {
+    setSelectedOrder(order);
+    setShowFlagModal(true);
   };
 
   const filteredOrders = pendingOrders.filter(order => {
@@ -194,16 +257,35 @@ function PendingOrders() {
                         <i className="fas fa-shipping-fast"></i> Ship Now
                       </button>
                     )}
-                    {order.isFromDB && order.status === 'Accepted' && (
-                      <button className="btn-ship" onClick={() => handleShip(order.id)}>
-                        <i className="fas fa-truck"></i> Ship Order
+                    {order.isFromDB && (order.status === 'Accepted' || order.status === 'Shipped') && (
+                      <button className="btn-ship" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>
+                        <i className="fas fa-truck"></i> {order.status === 'Shipped' ? 'Shipped' : 'Processing'}
                       </button>
                     )}
-                    {order.isFromDB && order.status !== 'Shipped' && (
+                    {order.isFromDB && order.status !== 'Shipped' && order.status !== 'Accepted' && (
                       <button className="btn-cancel" onClick={() => handleCancel(order.id)}>
                         <i className="fas fa-times"></i> Cancel
                       </button>
                     )}
+                    <button
+                      className="btn-flag"
+                      onClick={() => openFlagModal(order)}
+                      style={{
+                        backgroundColor: '#ff6b6b',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>🚩</span>
+                      <span>Flag Buyer</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -211,6 +293,66 @@ function PendingOrders() {
           )}
         </div>
       </div>
+
+      {/* Flag Buyer Modal */}
+      <Modal
+        isOpen={showFlagModal}
+        onClose={() => {
+          setShowFlagModal(false);
+          setFlagReason("");
+          setSelectedOrder(null);
+        }}
+        title="Flag Buyer"
+        actions={
+          <>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setShowFlagModal(false);
+                setFlagReason("");
+                setSelectedOrder(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleFlagBuyer}
+              disabled={submittingFlag || !flagReason.trim()}
+            >
+              {submittingFlag ? "Submitting..." : "Submit Flag"}
+            </button>
+          </>
+        }
+      >
+        <div style={{ padding: '20px' }}>
+          <p style={{ marginBottom: '15px', fontSize: '16px' }}>
+            <strong>What problem did you face with this buyer?</strong>
+          </p>
+          {selectedOrder && (
+            <p style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+              Buyer: {selectedOrder.buyer} (Order #{selectedOrder.id})
+            </p>
+          )}
+          <textarea
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            placeholder="Please describe the issue you encountered..."
+            rows={6}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+          <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+            Your report will be reviewed by our team. We take all reports seriously.
+          </p>
+        </div>
+      </Modal>
     </div >
   );
 }

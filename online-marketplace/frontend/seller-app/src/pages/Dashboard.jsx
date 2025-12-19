@@ -1,61 +1,137 @@
 import Sidebar from "../components/Sidebar";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getSellerOrders } from "../services/orderService";
+import { getSellerItems } from "../services/itemService";
 import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [todayStats, setTodayStats] = useState({
+    ordersToday: 0,
+    revenueToday: 0,
+    newMessages: 0,
+    lowStockItems: 0,
+  });
+  const [pendingActions, setPendingActions] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
 
-  // Today's quick stats
-  const todayStats = {
-    ordersToday: 8,
-    revenueToday: 456,
-    newMessages: 3,
-    lowStockItems: 2,
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diffMs = now - new Date(date);
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
-
-  // Pending actions that need attention
-  const pendingActions = [
-    { id: 1, type: "order", title: "5 orders awaiting shipment", icon: "fa-shipping-fast", priority: "high", link: "/pending-orders" },
-    { id: 2, type: "message", title: "3 unread customer messages", icon: "fa-envelope", priority: "medium", link: "/messages" },
-    { id: 3, type: "stock", title: "2 products low on stock", icon: "fa-exclamation-triangle", priority: "high", link: "/your-listings" },
-    { id: 4, type: "review", title: "1 new review to respond to", icon: "fa-star", priority: "low", link: "/your-listings" },
-  ];
-
-  // Alerts and notifications
-  const alerts = [
-    { id: 1, type: "success", message: "Order #1234 has been delivered", time: "5 min ago" },
-    { id: 2, type: "warning", message: "Smart Watch stock below 5 units", time: "1 hour ago" },
-    { id: 3, type: "info", message: "New promotional opportunity available", time: "2 hours ago" },
-  ];
-
-  // Live activity feed
-  const activityFeed = [
-    { id: 1, type: "order", text: "New order from Ahmed M.", amount: 89, time: "Just now", icon: "fa-shopping-cart" },
-    { id: 2, type: "payment", text: "Payment received for Order #1230", amount: 156, time: "3 min ago", icon: "fa-credit-card" },
-    { id: 3, type: "review", text: "5-star review on Wireless Earbuds", time: "10 min ago", icon: "fa-star" },
-    { id: 4, type: "message", text: "Question from Sara about shipping", time: "15 min ago", icon: "fa-comment" },
-    { id: 5, type: "order", text: "New order from Omar K.", amount: 45, time: "30 min ago", icon: "fa-shopping-cart" },
-    { id: 6, type: "shipped", text: "Order #1228 marked as shipped", time: "1 hour ago", icon: "fa-truck" },
-  ];
-
-  // Orders awaiting action
-  const pendingOrders = [
-    { id: 1231, customer: "Ahmed M.", product: "Wireless Earbuds Pro", amount: 89, status: "Awaiting shipment" },
-    { id: 1230, customer: "Sara K.", product: "Smart Watch Series X", amount: 199, status: "Processing" },
-    { id: 1229, customer: "Omar A.", product: "Bluetooth Speaker", amount: 65, status: "Awaiting shipment" },
-  ];
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     if (userData.isAuthenticated && userData.type === 'seller') {
       setUser(userData);
     }
-    // Don't redirect here - ProtectedRoute handles it
-    setIsLoading(false);
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const [orders, items] = await Promise.all([
+        getSellerOrders(),
+        getSellerItems()
+      ]);
+
+      // Calculate today's stats
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayOrders = orders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        orderDate.setHours(0, 0, 0, 0);
+        return orderDate.getTime() === today.getTime();
+      });
+      
+      const revenueToday = todayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+      const pendingOrdersCount = orders.filter(o => o.status === 'Pending').length;
+      const lowStockItems = items.items?.filter(item => item.stock < 5).length || 0;
+
+      setTodayStats({
+        ordersToday: todayOrders.length,
+        revenueToday: revenueToday,
+        newMessages: 0, // Messages not implemented yet
+        lowStockItems: lowStockItems,
+      });
+
+      // Set pending actions
+      setPendingActions([
+        { id: 1, type: "order", title: `${pendingOrdersCount} order${pendingOrdersCount !== 1 ? 's' : ''} awaiting shipment`, icon: "fa-shipping-fast", priority: pendingOrdersCount > 0 ? "high" : "low", link: "/pending-orders" },
+        { id: 2, type: "message", title: "0 unread customer messages", icon: "fa-envelope", priority: "low", link: "/messages" },
+        { id: 3, type: "stock", title: `${lowStockItems} product${lowStockItems !== 1 ? 's' : ''} low on stock`, icon: "fa-exclamation-triangle", priority: lowStockItems > 0 ? "high" : "low", link: "/your-listings" },
+        { id: 4, type: "review", title: "0 new reviews to respond to", icon: "fa-star", priority: "low", link: "/your-listings" },
+      ]);
+
+      // Set alerts from recent orders
+      const recentDelivered = orders
+        .filter(o => o.status === 'Delivered')
+        .slice(0, 3)
+        .map(order => ({
+          id: order._id,
+          type: "success",
+          message: `Order #${order._id.substring(0, 8)} has been delivered`,
+          time: formatTimeAgo(order.updatedAt || order.createdAt)
+        }));
+      
+      const lowStockAlerts = items.items
+        ?.filter(item => item.stock < 5)
+        .slice(0, 2)
+        .map(item => ({
+          id: item._id,
+          type: "warning",
+          message: `${item.title} stock below ${item.stock} units`,
+          time: formatTimeAgo(item.updatedAt || item.createdAt)
+        })) || [];
+      
+      setAlerts([...recentDelivered, ...lowStockAlerts].slice(0, 3));
+
+      // Set activity feed from recent orders
+      const recentOrders = orders.slice(0, 6).map(order => ({
+        id: order._id,
+        type: order.status === 'Shipped' ? "shipped" : "order",
+        text: order.status === 'Shipped' 
+          ? `Order #${order._id.substring(0, 8)} marked as shipped`
+          : `New order from ${order.buyerId?.name || 'Customer'}`,
+        amount: order.totalPrice,
+        time: formatTimeAgo(order.createdAt),
+        icon: order.status === 'Shipped' ? "fa-truck" : "fa-shopping-cart"
+      }));
+      setActivityFeed(recentOrders);
+
+      // Set pending orders
+      const pending = orders
+        .filter(o => o.status === 'Pending' || o.status === 'Accepted')
+        .slice(0, 3)
+        .map(order => ({
+          id: order._id,
+          customer: order.buyerId?.name || 'Customer',
+          product: order.items?.[0]?.itemId?.title || 'Product',
+          amount: order.totalPrice || 0,
+          status: order.status === 'Pending' ? 'Awaiting shipment' : 'Processing'
+        }));
+      setPendingOrders(pending);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
