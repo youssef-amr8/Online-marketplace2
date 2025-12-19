@@ -43,11 +43,11 @@ function Orders() {
       } else if (typeof error === 'string') {
         msg = error;
       }
-      
+
       if (msg.includes('Failed to fetch') || msg.includes('Network')) {
         msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
       }
-      
+
       alert(`Error: ${msg}`);
     }
   };
@@ -95,6 +95,7 @@ function Orders() {
     buyerId: order.buyerId?._id || order.buyerId,
     amount: order.totalPrice || 0,
     date: new Date(order.createdAt).toLocaleDateString(),
+    rawStatus: order.status, // Keep raw status for logic
     status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
   });
 
@@ -228,13 +229,13 @@ function Orders() {
                     <td><span className="status-badge pending">{order.status}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {order.status === 'Pending' ? (
+                        {order.rawStatus === 'Pending' ? (
                           <button className="action-btn-small ship" onClick={() => handleShipNow(order.id)}>
                             <i className="fas fa-shipping-fast"></i> Ship Now
                           </button>
                         ) : (
                           <button className="action-btn-small" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>
-                            <i className="fas fa-truck"></i> {order.status === 'Shipped' ? 'Shipped' : 'Processing'}
+                            <i className="fas fa-truck"></i> {order.rawStatus === 'Shipped' ? 'Shipped' : 'Processing'}
                           </button>
                         )}
                         <button
@@ -295,27 +296,28 @@ function Orders() {
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
                     <td>
-                      <span className="status-badge completed">{order.status}</span>
-                      <button
-                        className="action-btn-small"
-                        onClick={() => openFlagModal(order)}
-                        style={{
-                          backgroundColor: '#ff6b6b',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px'
-                        }}
-                      >
-                        <span>🚩</span>
-                        <span>Flag</span>
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="status-badge completed">{order.status}</span>
+                        <button
+                          className="action-btn-small"
+                          onClick={() => openFlagModal(order)}
+                          style={{
+                            backgroundColor: '#ff6b6b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span>🚩</span>
+                          <span>Flag</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

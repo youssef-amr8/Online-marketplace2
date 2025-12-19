@@ -86,7 +86,7 @@ const ProductDetailPage = () => {
         commentText,
         commentRating
       );
-      
+
       // Add the new comment to the list
       setComments([newComment, ...comments]);
       setCommentText("");
@@ -176,10 +176,10 @@ const ProductDetailPage = () => {
   }
 
 
-  const productImages = product?.images && product.images.length > 0 
-    ? product.images 
-    : product?.image 
-      ? [product.image] 
+  const productImages = product?.images && product.images.length > 0
+    ? product.images
+    : product?.image
+      ? [product.image]
       : ['https://via.placeholder.com/400'];
 
   return (
@@ -236,9 +236,7 @@ const ProductDetailPage = () => {
         <div className="product-info-section">
           <h1 className="product-title">{product.name}</h1>
 
-          <div className="product-brand">
-            Visit the <span className="brand-link">{product.brand}</span> Store
-          </div>
+
 
           <div className="product-rating-row">
             <div className="rating-stars">{renderStars(product.rating)}</div>
@@ -285,7 +283,7 @@ const ProductDetailPage = () => {
             <h3>About this item</h3>
             <ul>
               <li>{product.description}</li>
-              <li>Brand: {product.brand}</li>
+
               <li>
                 {product.inStock
                   ? "✓ In Stock - Ready to Ship"
@@ -360,12 +358,9 @@ const ProductDetailPage = () => {
             <div className="seller-info">
               <div className="info-row">
                 <span className="label">Ships from</span>
-                <span className="value">Atlantica</span>
+                <span className="value">Amaze</span>
               </div>
-              <div className="info-row">
-                <span className="label">Sold by</span>
-                <span className="value">{product.brand}</span>
-              </div>
+
             </div>
           </div>
         </div>
@@ -449,8 +444,8 @@ const ProductDetailPage = () => {
                       {comment.buyerId?.name
                         ? comment.buyerId.name.charAt(0).toUpperCase()
                         : comment.buyerId?.email
-                        ? comment.buyerId.email.charAt(0).toUpperCase()
-                        : "U"}
+                          ? comment.buyerId.email.charAt(0).toUpperCase()
+                          : "U"}
                     </div>
                     <span className="review-author">
                       {comment.buyerId?.name || comment.buyerId?.email || "Anonymous"}

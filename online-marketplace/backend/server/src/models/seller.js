@@ -12,7 +12,8 @@ const sellerSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     role: { type: String, default: 'seller', immutable: true }, // Always seller
     sellerProfile: sellerProfileSchema,
-    flags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Flag' }]
+    flags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Flag' }],
+    refundsGiven: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Seller', sellerSchema);

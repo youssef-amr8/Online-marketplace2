@@ -30,7 +30,7 @@ function Settings() {
     });
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const userData = JSON.parse(localStorage.getItem("seller_user") || "{}");
         if (userData.isAuthenticated && userData.type === "seller") {
             setUser(userData);
             setProfile((prev) => ({
@@ -59,9 +59,9 @@ function Settings() {
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Update localStorage
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const userData = JSON.parse(localStorage.getItem("seller_user") || "{}");
         userData.name = profile.name;
-        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("seller_user", JSON.stringify(userData));
 
         setMessage({ type: "success", text: "Settings saved successfully!" });
         setIsSaving(false);

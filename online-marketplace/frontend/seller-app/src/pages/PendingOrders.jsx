@@ -61,11 +61,11 @@ function PendingOrders() {
       } else if (typeof error === 'string') {
         msg = error;
       }
-      
+
       if (msg.includes('Failed to fetch') || msg.includes('Network')) {
         msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
       }
-      
+
       alert(`Error: ${msg}`);
     }
   };
@@ -85,20 +85,28 @@ function PendingOrders() {
       } else if (typeof error === 'string') {
         msg = error;
       }
-      
+
       if (msg.includes('Failed to fetch') || msg.includes('Network')) {
         msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
       }
-      
+
       alert(`Error: ${msg}`);
     }
   };
 
 
 
-  const handleCancel = (orderId) => {
-    if (window.confirm(`Are you sure you want to cancel order #${orderId}?`)) {
-      setPendingOrders(pendingOrders.filter(o => o.id !== orderId));
+  const handleCancel = async (orderId) => {
+    if (window.confirm(`Are you sure you want to cancel order #${orderId.substring(0, 8)}? The buyer will be notified and stock will be restored.`)) {
+      try {
+        await updateOrderStatus(orderId, 'Cancelled');
+        alert('Order cancelled successfully. Stock has been restored.');
+        // Refresh orders to update the list
+        fetchOrders();
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+        alert(`Failed to cancel order: ${error.message}`);
+      }
     }
   };
 
@@ -251,7 +259,7 @@ function PendingOrders() {
                       <span className="info-value amount">${order.amount}</span>
                     </div>
                   </div>
-                  <div className="order-actions">
+                  <div className="order-actions" style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
                     {order.isFromDB && order.status === 'Pending' && (
                       <button className="btn-ship" onClick={() => handleProcess(order.id)}>
                         <i className="fas fa-shipping-fast"></i> Ship Now

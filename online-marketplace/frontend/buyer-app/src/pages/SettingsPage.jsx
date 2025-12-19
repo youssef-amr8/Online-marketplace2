@@ -329,10 +329,7 @@ const SettingsPage = () => {
             </div>
 
             <div className="settings-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '2px solid #eaeaea', paddingBottom: '10px' }}>
-                <h3 style={{ border: 'none', margin: 0, padding: 0 }}>Preferences</h3>
-                <button className="edit-link-btn" onClick={() => setActiveModal('preferences')}>Edit</button>
-              </div>
+              <h3>Preferences</h3>
 
               <div className="settings-item">
                 <span className="settings-label">

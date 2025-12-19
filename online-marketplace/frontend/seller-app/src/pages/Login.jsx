@@ -51,12 +51,12 @@ const Login = () => {
 
       // Store token if provided
       if (data.data && data.data.token) {
-        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('seller_token', data.data.token);
       }
 
       // Store user data
       const userData = data.data?.user || data.user || {};
-      localStorage.setItem('user', JSON.stringify({
+      localStorage.setItem('seller_user', JSON.stringify({
         email: userData.email,
         name: userData.name,
         type: userData.role || 'seller',
@@ -130,12 +130,12 @@ const Login = () => {
 
       // Store token if provided
       if (data.data && data.data.token) {
-        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('seller_token', data.data.token);
       }
 
       // Store user data
       const userData = data.data?.user || data.user || {};
-      localStorage.setItem('user', JSON.stringify({
+      localStorage.setItem('seller_user', JSON.stringify({
         email: userData.email,
         name: userData.name,
         type: userData.role || 'seller',

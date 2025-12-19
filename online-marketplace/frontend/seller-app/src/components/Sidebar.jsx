@@ -21,12 +21,13 @@ function Sidebar() {
   }, [insideOrders]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('seller_user');
+    localStorage.removeItem('seller_token');
     navigate('/login');
   };
 
   // Get user info
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(localStorage.getItem('seller_user') || '{}');
 
   return (
     <div className="sidebar">

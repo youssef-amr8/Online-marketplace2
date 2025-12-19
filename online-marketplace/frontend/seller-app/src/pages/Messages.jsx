@@ -85,7 +85,7 @@ function Messages() {
     ]);
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const userData = JSON.parse(localStorage.getItem("seller_user") || "{}");
         if (userData.isAuthenticated && userData.type === "seller") {
             setUser(userData);
         } else {

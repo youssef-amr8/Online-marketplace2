@@ -4,7 +4,7 @@ import Modal from '../common/Modal';
 import commentService from '../../services/commentService';
 import flagService from '../../services/flagService';
 
-function OrderCard({ order, onConfirmDelivery }) {
+function OrderCard({ order, onConfirmDelivery, onCancelOrder }) {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
   const [comment, setComment] = useState('');
@@ -34,6 +34,7 @@ function OrderCard({ order, onConfirmDelivery }) {
       processing: { title: 'Shipped', description: 'Your order has been shipped', step: 2 },
       shipped: { title: 'Shipped', description: 'Your order has been shipped', step: 2 },
       delivered: { title: 'Delivered', description: 'Your order has been delivered', step: 3 },
+      cancelled: { title: 'Order Cancelled', description: 'This order was cancelled. Stock has been returned.', step: 0 },
     };
     return statusMap[status] || { title: 'Pending', description: 'Your order is being processed', step: 1 };
   };
@@ -79,12 +80,12 @@ function OrderCard({ order, onConfirmDelivery }) {
     // The sellerId should already be extracted as a string in OrdersPage.jsx
     // But we'll add extra safety checks here
     let sellerId = order.sellerId;
-    
+
     // If it's still an object, extract the ID
     if (sellerId && typeof sellerId === 'object') {
       sellerId = sellerId._id || sellerId.id || (sellerId.toString ? String(sellerId) : null);
     }
-    
+
     // Convert to string if not already
     if (sellerId && typeof sellerId !== 'string') {
       sellerId = String(sellerId);
@@ -369,7 +370,21 @@ function OrderCard({ order, onConfirmDelivery }) {
               setActiveModal('comment');
             }}>Write Product Review</button>
             <button className="amazon-btn amazon-btn-secondary" onClick={() => setActiveModal('rate')}>Rate Seller</button>
-            {order.status !== 'delivered' && (
+            {order.status === 'pending' && (
+              <button
+                className="amazon-btn amazon-btn-secondary"
+                onClick={onCancelOrder}
+                style={{
+                  backgroundColor: '#f1f1f1',
+                  color: '#111',
+                  border: '1px solid #d5d9d9',
+                  boxShadow: '0 2px 5px 0 rgba(213,217,217,.5)'
+                }}
+              >
+                Cancel Order
+              </button>
+            )}
+            {order.status !== 'delivered' && order.status !== 'cancelled' && (
               <button
                 className="amazon-btn amazon-btn-secondary"
                 onClick={() => setShowFlagModal(true)}

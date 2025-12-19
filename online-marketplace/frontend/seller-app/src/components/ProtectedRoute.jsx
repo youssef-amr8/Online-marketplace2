@@ -8,12 +8,12 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     // Check authentication
     const checkAuth = () => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
+      const user = JSON.parse(localStorage.getItem('seller_user') || '{}');
+
       if (user.isAuthenticated && user.type === 'seller') {
         setIsAuthenticated(true);
       }
-      
+
       setIsLoading(false);
     };
 

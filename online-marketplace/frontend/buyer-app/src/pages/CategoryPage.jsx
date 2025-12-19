@@ -16,7 +16,7 @@ const CategoryPage = () => {
   const [categoryName, setCategoryName] = useState("");
   const [sortBy, setSortBy] = useState("featured");
   const [priceFilter, setPriceFilter] = useState("all");
-  const [selectedBrands, setSelectedBrands] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -156,12 +156,7 @@ const CategoryPage = () => {
       });
     }
 
-    // Apply brand filter
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter(p =>
-        selectedBrands.includes(p.brand || "Other")
-      );
-    }
+
 
     // Apply sorting
     switch (sortBy) {
@@ -181,13 +176,7 @@ const CategoryPage = () => {
     return filtered;
   };
 
-  const handleBrandToggle = (brand) => {
-    setSelectedBrands(prev =>
-      prev.includes(brand)
-        ? prev.filter(b => b !== brand)
-        : [...prev, brand]
-    );
-  };
+
 
   const filteredProducts = getFilteredProducts();
 
@@ -279,39 +268,7 @@ const CategoryPage = () => {
               </div>
             </div>
 
-            <div className="filter-section">
-              <h4>Brand</h4>
-              <div className="filter-list">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Samsung")}
-                    onChange={() => handleBrandToggle("Samsung")}
-                  /> Samsung
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Apple")}
-                    onChange={() => handleBrandToggle("Apple")}
-                  /> Apple
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Sony")}
-                    onChange={() => handleBrandToggle("Sony")}
-                  /> Sony
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("LG")}
-                    onChange={() => handleBrandToggle("LG")}
-                  /> LG
-                </label>
-              </div>
-            </div>
+
           </div>
 
           {/* Products Section */}
@@ -357,7 +314,7 @@ const CategoryPage = () => {
                   <button onClick={() => {
                     setSearchQuery("");
                     setPriceFilter("all");
-                    setSelectedBrands([]);
+
                   }} className="amazon-btn amazon-btn-secondary">Clear Filters</button>
                 </div>
               )}

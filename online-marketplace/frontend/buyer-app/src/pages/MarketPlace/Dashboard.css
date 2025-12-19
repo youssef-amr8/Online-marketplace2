@@ -127,6 +127,35 @@
   border-color: #F2C200;
 }
 
+
+/* Navigation Toggle Button */
+.MarketPlace .nav-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFD814;
+  border: 1px solid #FCD200;
+  color: #0F1111;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  margin-right: 10px;
+  width: 36px;
+  height: 36px;
+}
+
+.MarketPlace .nav-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: #0F1111;
+}
+
+.MarketPlace .nav-toggle-btn:hover {
+  background: #F7CA00;
+  border-color: #F2C200;
+}
+
 /* Hero Section */
 .MarketPlace .holiday-section {
   background: linear-gradient(135deg, #232F3E 0%, #37475A 50%, #131A22 100%);

@@ -57,7 +57,7 @@ const CartPage = () => {
                   <Link to={`/product/${item.id}`} className="item-name">
                     {item.name}
                   </Link>
-                  <p className="item-brand">Brand: {item.brand}</p>
+
                   <p className="item-stock">
                     {item.inStock ? (
                       <span className="in-stock">In Stock</span>

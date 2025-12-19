@@ -21,7 +21,7 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <Link to="/marketplace" className="header-logo">
-          <span className="logo-text">Atlantica</span>
+          <span className="logo-text">Amaze</span>
         </Link>
 
         {/* Search Bar */}
@@ -29,7 +29,7 @@ const Header = () => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search Atlantica"
+            placeholder="Search Amaze"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
