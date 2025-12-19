@@ -4,10 +4,32 @@ This project is configured to make it easy for teammates to get started with a f
 
 ## Getting Started
 
-To start the entire environment, including the database and the backend app, run:
+To start the entire environment (database, seed, and optional backend), run:
 
 ```bash
 docker-compose up -d
+```
+
+## Running for Development (with Auto-Reload)
+
+To ensure your changes refresh automatically in the browser and the server restarts on code changes, use these commands in separate terminals:
+
+### 1. Backend Server
+```bash
+cd backend/server
+npm run dev
+```
+
+### 2. Buyer App (Frontend)
+```bash
+cd frontend/buyer-app
+npm start
+```
+
+### 3. Seller App (Frontend)
+```bash
+cd frontend/seller-app
+npm run dev
 ```
 
 ## How it works
