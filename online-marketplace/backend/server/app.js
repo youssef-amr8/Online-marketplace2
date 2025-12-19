@@ -62,4 +62,10 @@ mongoose.connect(mongoURL)
 // 6️⃣ START SERVER
 // ====================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+
+// Only listen if not running in Vercel (Vercel manages the port itself)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+}
+
+module.exports = app;
