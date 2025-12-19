@@ -33,9 +33,11 @@ function YourListings() {
         stock: item.stock || 0,
         price: item.price,
         category: item.category || 'Uncategorized',
-        sales: 0, // TODO: Calculate from orders
+        sales: item.sales || 0,
         image: item.images?.[0] || 'https://via.placeholder.com/200',
-        status: item.stock === 0 ? 'out_of_stock' : item.stock < 5 ? 'low_stock' : 'active'
+        status: item.stock === 0 ? 'out_of_stock' : item.stock < 5 ? 'low_stock' : 'active',
+        reviews: item.commentsCount || 0,
+        rating: item.avgRating || 0
       }));
       setProducts(mappedProducts);
     } catch (error) {
@@ -88,7 +90,7 @@ function YourListings() {
     setShowCommentsModal(true);
     setLoadingComments(true);
     setComments([]);
-    
+
     try {
       // Fetch comments for this product
       // Note: product.id might need to be mapped to the actual MongoDB itemId
@@ -260,8 +262,8 @@ function YourListings() {
                     <h3 className="product-name">{product.name}</h3>
                     <p className="product-price">${product.price.toFixed(2)}</p>
                     <div className="product-stats">
-                      <span><i className="fas fa-box"></i> {product.stock} in stock</span>
-                      <span><i className="fas fa-shopping-bag"></i> {product.sales} sold</span>
+                      <span><i className="fas fa-box"></i> {product.stock}</span>
+                      <span><i className="fas fa-star" style={{ color: '#ffa41c' }}></i> {product.rating.toFixed(1)} ({product.reviews})</span>
                     </div>
                     <div className="product-actions">
                       <button className="btn-comments" onClick={() => handleViewComments(product)}>
@@ -302,7 +304,12 @@ function YourListings() {
                       <td>{product.category}</td>
                       <td className="amount">${product.price.toFixed(2)}</td>
                       <td>{product.stock}</td>
-                      <td>{product.sales}</td>
+                      <td>
+                        <div>{product.sales} Sales</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>
+                          {product.reviews} Reviews ({product.rating.toFixed(1)} <span style={{ color: '#ffa41c' }}>★</span>)
+                        </div>
+                      </td>
                       <td>
                         <span className={`status-badge ${product.status === "active" ? "completed" : product.status === "low_stock" ? "pending" : "cancelled"}`}>
                           {product.status.replace("_", " ")}
@@ -312,7 +319,7 @@ function YourListings() {
                         <button className="action-btn-small comments" onClick={() => handleViewComments(product)} title="View Comments">
                           <i className="fas fa-comments"></i>
                         </button>
-                         <button className="action-btn-small edit" onClick={() => handleEdit(product)} title="Edit Product"><i className="fas fa-edit"></i></button>
+                        <button className="action-btn-small edit" onClick={() => handleEdit(product)} title="Edit Product"><i className="fas fa-edit"></i></button>
                         <button className="action-btn-small delete" onClick={() => handleDelete(product.id)}>
                           <i className="fas fa-trash"></i>
                         </button>
@@ -357,8 +364,8 @@ function YourListings() {
                           {comment.buyerId?.name
                             ? comment.buyerId.name.charAt(0).toUpperCase()
                             : comment.buyerId?.email
-                            ? comment.buyerId.email.charAt(0).toUpperCase()
-                            : "U"}
+                              ? comment.buyerId.email.charAt(0).toUpperCase()
+                              : "U"}
                         </div>
                         <div className="comment-author-info">
                           <span className="comment-author-name">
@@ -399,7 +406,7 @@ function YourListings() {
                   type="text"
                   placeholder="Enter product name"
                   value={editForm.name}
-                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   required
                 />
               </div>
@@ -411,7 +418,7 @@ function YourListings() {
                     step="0.01"
                     placeholder="0.00"
                     value={editForm.price}
-                    onChange={(e) => setEditForm({...editForm, price: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
                     required
                   />
                 </div>
@@ -421,7 +428,7 @@ function YourListings() {
                     type="number"
                     placeholder="0"
                     value={editForm.stock}
-                    onChange={(e) => setEditForm({...editForm, stock: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
                     required
                   />
                 </div>
@@ -431,7 +438,7 @@ function YourListings() {
                 <textarea
                   placeholder="Describe your product..."
                   value={editForm.description}
-                  onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
                 />
               </div>

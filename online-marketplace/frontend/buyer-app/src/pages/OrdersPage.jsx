@@ -4,6 +4,7 @@ import OrdersHeader from '../components/orders/OrdersHeader';
 import OrdersFilter from '../components/orders/OrdersFilter';
 import OrderCard from '../components/orders/OrderCard';
 import EmptyOrders from '../components/orders/EmptyOrders';
+import orderService from '../services/orderService';
 
 function Orders() {
   const [orders, setOrders] = useState([]);
@@ -20,32 +21,47 @@ function Orders() {
     try {
       setLoading(true);
 
-      // Load orders from localStorage
-      const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+      const apiOrders = await orderService.getOrders();
+      // Map API orders to component structure
+      const mappedOrders = apiOrders.map(order => ({
+        id: order._id,
+        orderId: order._id, // Use _id as display ID for now
+        orderDate: order.createdAt,
+        total: order.totalPrice,
+        status: order.status.toLowerCase(), // Ensure lowercase for status map
+        fullName: order.buyerId?.name || 'Me', // Fallback
+        address: '123 Main St', // Placeholder if not in DB
+        city: 'Cairo',
+        countryName: 'Egypt',
+        items: order.items.map(item => ({
+          id: item.itemId._id,
+          name: item.itemId.title,
+          image: item.itemId.images[0] || 'https://via.placeholder.com/100',
+          price: item.price,
+          quantity: item.quantity
+        }))
+      }));
 
-      // Filter by time if needed
-      const now = new Date();
-      let filtered = storedOrders;
-
-      if (timeFilter === 'past 30 days') {
-        const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
-        filtered = storedOrders.filter(order => new Date(order.orderDate) >= thirtyDaysAgo);
-      } else if (timeFilter === 'past three months') {
-        const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
-        filtered = storedOrders.filter(order => new Date(order.orderDate) >= threeMonthsAgo);
-      } else if (timeFilter === 'past year') {
-        const oneYearAgo = new Date(now.setFullYear(now.getFullYear() - 1));
-        filtered = storedOrders.filter(order => new Date(order.orderDate) >= oneYearAgo);
-      }
-
-      // Sort by date (newest first)
-      filtered.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
-
-      setOrders(filtered);
+      // Filter logic (simplified for real data)
+      // Note: Real filter implementation would be more complex with dates
+      setOrders(mappedOrders);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching orders:', error);
       setLoading(false);
+    }
+  };
+
+  const handleConfirmDelivery = async (orderId) => {
+    try {
+      if (window.confirm("Confirm that you have received this order?")) {
+        await orderService.updateOrderStatus(orderId, 'Delivered');
+        fetchOrders(); // Refresh list
+        alert("Order confirmed as delivered!");
+      }
+    } catch (error) {
+      console.error("Error confirming delivery:", error);
+      alert("Failed to confirm delivery.");
     }
   };
 
@@ -55,9 +71,8 @@ function Orders() {
   };
 
   const filteredOrders = orders.filter(order =>
-    order.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.items?.some(item => item.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+  (order.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.items?.some(item => item.name?.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   return (
@@ -82,7 +97,11 @@ function Orders() {
         ) : (
           <div className="orders-list">
             {filteredOrders.map(order => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard
+                key={order.id}
+                order={order}
+                onConfirmDelivery={() => handleConfirmDelivery(order.id)}
+              />
             ))}
           </div>
         )}

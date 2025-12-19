@@ -16,14 +16,13 @@ exports.createOrder = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    // JWT token contains 'id', not '_id'
-    const sellerId = req.user.id || req.user._id;
-    if (!sellerId) {
-      return error(res, 'Seller ID not found in token', 401);
+    const userId = req.user.id || req.user._id;
+    if (!userId) {
+      return error(res, 'User ID not found in token', 401);
     }
     const { id } = req.params;
     const { status } = req.body;
-    const order = await orderService.updateStatus(id, sellerId, status);
+    const order = await orderService.updateStatus(id, userId, status);
     success(res, order);
   } catch (err) { error(res, err.message, 400); }
 };

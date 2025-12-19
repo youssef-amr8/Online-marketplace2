@@ -1,6 +1,7 @@
 import Sidebar from "../components/Sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { getSellerOrders } from "../services/orderService";
 import "./PageStyles.css";
 
 function History() {
@@ -8,14 +9,45 @@ function History() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState("all");
 
-  const [soldOrders] = useState([
-    { id: 1226, product: "Wireless Earbuds Pro", qty: 2, buyer: "Ahmed M.", amount: 178, date: "2024-01-15", status: "Delivered", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=100" },
-    { id: 1225, product: "Smart Watch Series X", qty: 1, buyer: "Sara K.", amount: 199, date: "2024-01-14", status: "Delivered", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100" },
-    { id: 1224, product: "Bluetooth Speaker", qty: 1, buyer: "Omar A.", amount: 65, date: "2024-01-13", status: "Delivered", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=100" },
-    { id: 1223, product: "Laptop Stand Pro", qty: 1, buyer: "Laila A.", amount: 45, date: "2024-01-12", status: "Refunded", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=100" },
-    { id: 1222, product: "USB-C Hub 7-in-1", qty: 2, buyer: "Youssef K.", amount: 70, date: "2024-01-11", status: "Delivered", image: "https://images.unsplash.com/photo-1625723044792-44de16ccb4e9?w=100" },
-    { id: 1221, product: "Gaming Mouse Pro", qty: 1, buyer: "Mona M.", amount: 89, date: "2024-01-10", status: "Delivered", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=100" },
-  ]);
+  const [soldOrders, setSoldOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    setIsLoading(true);
+    try {
+      const orders = await getSellerOrders(); // uses ./services/orderService which calls /api/orders/seller
+
+      if (!Array.isArray(orders)) {
+        console.error("Expected array from getSellerOrders but got:", orders);
+        setSoldOrders([]);
+        return;
+      }
+
+      // Filter for history statuses
+      const historyOrders = orders
+        .filter(order => order && ['Delivered', 'Refunded', 'Cancelled'].includes(order.status))
+        .map(order => ({
+          id: order._id || order.id,
+          product: order.items?.[0]?.itemId?.title || 'Product',
+          qty: order.items?.[0]?.quantity || 1,
+          buyer: order.buyerId?.name || 'Customer',
+          amount: order.totalPrice || 0,
+          date: new Date(order.createdAt).toLocaleDateString(),
+          status: order.status,
+          image: order.items?.[0]?.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+        }));
+      setSoldOrders(historyOrders);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      setSoldOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Stats
   const totalSales = soldOrders.filter(o => o.status === "Delivered").length;
@@ -140,7 +172,7 @@ function History() {
                       <td><span className="date-tag">{order.date}</span></td>
                       <td className="amount">${order.amount}</td>
                       <td>
-                        <span className={`status-badge ${order.status.toLowerCase()}`}>
+                        <span className={`status-badge ${order.status ? order.status.toLowerCase() : ''}`}>
                           {order.status}
                         </span>
                       </td>
