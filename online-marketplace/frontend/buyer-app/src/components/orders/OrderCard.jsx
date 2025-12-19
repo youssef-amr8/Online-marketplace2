@@ -26,10 +26,10 @@ function OrderCard({ order, onConfirmDelivery }) {
   const getStatusDisplay = (status) => {
     const statusMap = {
       pending: { title: 'Order Pending', description: 'Your order is being processed (Awaiting Shipment)', step: 1 },
-      accepted: { title: 'Processing', description: 'Your order is being prepared for shipment', step: 2 },
-      processing: { title: 'Processing', description: 'Your order is being prepared for shipment', step: 2 },
-      shipped: { title: 'Shipped', description: 'Your order has been shipped', step: 3 },
-      delivered: { title: 'Delivered', description: 'Your order has been delivered', step: 4 },
+      accepted: { title: 'Shipped', description: 'Your order has been shipped', step: 2 },
+      processing: { title: 'Shipped', description: 'Your order has been shipped', step: 2 },
+      shipped: { title: 'Shipped', description: 'Your order has been shipped', step: 2 },
+      delivered: { title: 'Delivered', description: 'Your order has been delivered', step: 3 },
     };
     return statusMap[status] || { title: 'Pending', description: 'Your order is being processed', step: 1 };
   };
@@ -72,7 +72,7 @@ function OrderCard({ order, onConfirmDelivery }) {
         <p><strong>Estimated Delivery:</strong> 3-5 business days</p>
       </div>
       <div className="tracking-steps">
-        {['Order Placed', 'Processing', 'Shipped', 'Delivered'].map((step, index) => {
+        {['Order Placed', 'Shipped', 'Delivered'].map((step, index) => {
           const isCompleted = index + 1 <= statusDisplay.step;
           const isCurrent = index + 1 === statusDisplay.step;
           return (

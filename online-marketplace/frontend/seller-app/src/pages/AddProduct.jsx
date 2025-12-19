@@ -53,7 +53,7 @@ function AddProduct() {
     try {
       const itemData = {
         name: productName,
-        category: getCategorySlug(category), // Convert to slug for buyer app compatibility
+        category: activeSubcategory ? activeSubcategory.slug : selectedCategory.slug,
         price: parseFloat(price),
         stock: parseInt(stock),
         description: description || '',
@@ -61,7 +61,7 @@ function AddProduct() {
       };
 
       const response = await createItem(itemData);
-      
+
       if (response && response.data) {
         const newProduct = {
           id: response.data._id || response.data.id,
