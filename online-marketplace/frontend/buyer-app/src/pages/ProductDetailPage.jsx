@@ -1,7 +1,7 @@
 // src/pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { categories } from "../data/categories";
+// import { categories } from "../data/categories";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductContext";
@@ -12,7 +12,7 @@ const ProductDetailPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { fetchProductById } = useProducts();
 
   const [product, setProduct] = useState(null);
@@ -86,7 +86,7 @@ const ProductDetailPage = () => {
         commentText,
         commentRating
       );
-      
+
       // Add the new comment to the list
       setComments([newComment, ...comments]);
       setCommentText("");
@@ -176,10 +176,10 @@ const ProductDetailPage = () => {
   }
 
 
-  const productImages = product?.images && product.images.length > 0 
-    ? product.images 
-    : product?.image 
-      ? [product.image] 
+  const productImages = product?.images && product.images.length > 0
+    ? product.images
+    : product?.image
+      ? [product.image]
       : ['https://via.placeholder.com/400'];
 
   return (
@@ -449,8 +449,8 @@ const ProductDetailPage = () => {
                       {comment.buyerId?.name
                         ? comment.buyerId.name.charAt(0).toUpperCase()
                         : comment.buyerId?.email
-                        ? comment.buyerId.email.charAt(0).toUpperCase()
-                        : "U"}
+                          ? comment.buyerId.email.charAt(0).toUpperCase()
+                          : "U"}
                     </div>
                     <span className="review-author">
                       {comment.buyerId?.name || comment.buyerId?.email || "Anonymous"}

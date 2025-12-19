@@ -79,40 +79,10 @@ const CategoryPage = () => {
             if (sub) {
               setCategoryName(sub.name);
 
-              // If this subcategory has children, show them instead of products
-              if (sub.children && sub.children.length > 0) {
-                setCurrentSubcategories(sub.children);
-                setProductsData([]); // Clear products to force subcategory view
-                setIsLoading(false);
-              } else {
-                // No children = Leaf node = Show products
-                setCurrentSubcategories([]);
-                setIsLoading(true);
-                try {
-                  const results = await fetchProductsByCategory(subcategorySlug);
-                  setProductsData(results || []);
-                } catch (error) {
-                  console.error('Error fetching products:', error);
-                  setProductsData([]);
-                } finally {
-                  setIsLoading(false);
-                }
-              }
-            }
-          }
-          // Case 3: Top Level Category - e.g. /category/fashion
-          else {
-            // If this category has subcategories, show them instead of products
-            if (category.subcategories && category.subcategories.length > 0) {
-              setCurrentSubcategories(category.subcategories);
-              setProductsData([]); // Clear products to force subcategory view
-              setIsLoading(false);
-            } else {
-              // No subcategories = Leaf node = Show products
-              setCurrentSubcategories([]);
+              // Always fetch products for this slug, even if it has children
               setIsLoading(true);
               try {
-                const results = await fetchProductsByCategory(categorySlug);
+                const results = await fetchProductsByCategory(subcategorySlug);
                 setProductsData(results || []);
               } catch (error) {
                 console.error('Error fetching products:', error);
@@ -120,6 +90,34 @@ const CategoryPage = () => {
               } finally {
                 setIsLoading(false);
               }
+
+              // Also keep track of children if they exist
+              if (sub.children && sub.children.length > 0) {
+                setCurrentSubcategories(sub.children);
+              } else {
+                setCurrentSubcategories([]);
+              }
+            }
+          }
+          // Case 3: Top Level Category - e.g. /category/fashion
+          else {
+            // Always fetch products for this slug
+            setIsLoading(true);
+            try {
+              const results = await fetchProductsByCategory(categorySlug);
+              setProductsData(results || []);
+            } catch (error) {
+              console.error('Error fetching products:', error);
+              setProductsData([]);
+            } finally {
+              setIsLoading(false);
+            }
+
+            // Also keep track of subcategories if they exist
+            if (category.subcategories && category.subcategories.length > 0) {
+              setCurrentSubcategories(category.subcategories);
+            } else {
+              setCurrentSubcategories([]);
             }
           }
         }
@@ -129,7 +127,7 @@ const CategoryPage = () => {
     loadProducts();
   }, [categorySlug, subcategorySlug, childSlug, location.search, location.pathname, fetchProductsByCategory, searchProducts]);
 
-  const shouldShowSubcategories = currentSubcategories.length > 0 && productsData.length === 0;
+  // No longer using shouldShowSubcategories in a mutually exclusive way
 
   // Get filtered and sorted products
   const getFilteredProducts = () => {
@@ -212,9 +210,9 @@ const CategoryPage = () => {
         <span>{categoryName}</span>
       </div>
 
-      {shouldShowSubcategories ? (
+      {currentSubcategories.length > 0 && (
         <div className="subcategories-container">
-          <h2 className="page-title">{categoryName}</h2>
+          <h2 className="section-title">Subcategories</h2>
           <div className="subcategories-grid">
             {currentSubcategories.map((sub) => (
               <Link
@@ -240,7 +238,9 @@ const CategoryPage = () => {
             ))}
           </div>
         </div>
-      ) : (
+      )}
+
+      {(productsData.length > 0 || !isLoading) && (
         <div className="category-content">
           {/* Sidebar Filters */}
           <div className="filters-sidebar">
@@ -343,7 +343,7 @@ const CategoryPage = () => {
           {/* Products Section */}
           <div className="products-section">
             <div className="products-header">
-              <h1>{categoryName}</h1>
+              <h1>{categoryName} {productsData.length > 0 ? `(${filteredProducts.length} Products)` : ''}</h1>
               <div className="sort-options">
                 <label>Sort by:</label>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>

@@ -1,12 +1,12 @@
 // src/App.jsx - Cleaned Version
 import React, { createContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
 import Header from "./components/Header";
 import Categories from "./components/Categories";
-import { categories } from "./data/categories";
+// import { categories } from "./data/categories";
 import CategoryPage from "./pages/CategoryPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
@@ -33,12 +33,6 @@ function AppContent() {
   const isMarketPlacePage = location.pathname === '/marketplace';
   const [showNavigation, setShowNavigation] = React.useState(false);
 
-  const scrollToCategories = () => {
-    const element = document.getElementById('home-categories');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   // Hide navigation on login and marketplace pages (unless toggled on)
   const shouldShowNav = !isLoginPage && (!isMarketPlacePage || showNavigation);
