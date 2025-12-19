@@ -8,7 +8,7 @@ const Buyer = require('../src/models/buyer');
 const Item = require('../src/models/item');
 const Category = require('../src/models/category');
 
-const mongoURL = process.env.DB_URI || 'mongodb://localhost:27017/marketPlace';
+const connectDB = require('../src/config/db');
 
 // Demo products data
 const demoProducts = [
@@ -230,7 +230,7 @@ const categories = [
 async function seedDatabase() {
   try {
     console.log('🌱 Connecting to MongoDB...');
-    await mongoose.connect(mongoURL);
+    await connectDB();
     console.log('✅ Connected to MongoDB');
 
     // Clear existing data

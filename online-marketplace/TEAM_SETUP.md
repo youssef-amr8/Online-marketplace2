@@ -16,31 +16,27 @@ To ensure everyone has the same database structure and demo data, follow these s
     -   A **MongoDB** instance (port 27017).
     -   An **Automatic Seeding** service that populates your database with demo products, a demo seller, and a demo buyer.
 
-## 💡 How "Sharing" Works
+## 💡 How "Sharing" Works (Real Sync!)
 
 > [!IMPORTANT]
-> **Important Distinction: Shared Environment vs. Synced Data**
+> **Real-Time Syncing is Active!**
 >
-> -   **Shared Environment**: Docker ensures that every developer is running the exact same version of MongoDB and starts with the exact same **Demo Data** (products, categories, users).
-> -   **Local Data**: Any *new* products you add while the app is running are stored in **your local Docker volume**. Your teammates will **not** see the products you manually add, and you will not see theirs. This is normal for local development to prevent developers from cluttering each other's workspaces.
+> We have migrated from local Docker databases to a **Shared Cloud Database (MongoDB Atlas)**.
+> -   **Synced Data**: Any product added by *any* teammate in their local app will now appear for *everyone* instantly!
+> -   **Cloud Connection**: Your app connects to the URI defined in `.env` or `docker-compose.yml`.
 
-## 🔄 How to Sync/Reset Data
+## 🔄 How to Setup/Reset
 
-If you want to reset your local database to match the demo data again (e.g., after a teammate updates the `seed.js` script with new categories):
-
-1.  Stop the containers:
+1.  **Configure Credentials**: Open your `.env` file (or `docker-compose.yml`) and ensure the `DB_URI` has the correct Atlas password.
+2.  **Start/Restart**:
     ```bash
     docker-compose down
-    ```
-2.  Start them again:
-    ```bash
     docker-compose up -d
     ```
-    The `db-seed` service is configured to clear and re-populate the database every time the containers are started.
 
 ## 🛠️ Troubleshooting Connection
 
-If your app cannot connect to the database:
--   Check if port `27017` is already being used by a local installation of MongoDB. If so, stop your local MongoDB service.
--   Run `docker ps` to ensure the `mongo` container is healthy.
--   Check the logs if seeding fails: `docker logs <container_id_for_db_seed>`.
+If your app cannot connect:
+-   **Check Network Access**: In MongoDB Atlas, ensure IPs are allowed (usually set to `0.0.0.0/0` for dev).
+-   **Password**: Ensure the password in the URI doesn't have `< >` symbols around it.
+-   **Local Fallback**: If Atlas is down, you can change `DB_URI` back to `mongodb://mongo:27017/marketPlace` to use the local Docker database.
