@@ -20,5 +20,13 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  db-seed:
+    build: ./backend/server
+    command: node scripts/seed.js
+    environment:
+      - DB_URI=mongodb://mongo:27017/marketPlace
+    depends_on:
+      - mongo
+
 volumes:
   mongo-data:
