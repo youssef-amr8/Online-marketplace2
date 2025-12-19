@@ -159,3 +159,15 @@
     transform: scale(1) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
+
+.add-to-cart-btn.added {
+    background: #4CAF50 !important;
+    color: white !important;
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+.add-to-cart-btn.added:hover {
+    background: #45a049 !important;
+    transform: scale(1.15) !important;
+}

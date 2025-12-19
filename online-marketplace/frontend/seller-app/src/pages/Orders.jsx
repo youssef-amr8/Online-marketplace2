@@ -24,9 +24,9 @@ function Orders() {
 
   const handleShipNow = async (orderId) => {
     try {
-      await updateOrderStatus(orderId, 'Accepted');
+      await updateOrderStatus(orderId, 'Shipped');
       await fetchOrders(); // Refresh to update list
-      alert(`Order #${orderId} moved to Processing!`);
+      alert(`Order #${orderId} marked as Shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
       const msg = error.response?.data?.message || error.message || 'Failed to update order.';
@@ -43,14 +43,14 @@ function Orders() {
       const newStats = {
         totalOrders: orders.length,
         pending: orders.filter(o => o.status === 'Pending').length,
-        processing: orders.filter(o => o.status === 'Accepted' || o.status === 'Shipped').length,
+        shipped: orders.filter(o => o.status === 'Accepted' || o.status === 'Shipped').length,
         completed: orders.filter(o => o.status === 'Delivered').length
       };
       setStats(newStats);
 
       // Get pending orders (limit 3)
       const pending = orders
-        .filter(o => o.status === 'Pending' || o.status === 'Accepted')
+        .filter(o => o.status === 'Pending')
         .slice(0, 3)
         .map(mapOrderToDisplay);
       setPendingOrders(pending);
@@ -76,7 +76,7 @@ function Orders() {
     buyer: order.buyerId?.name || 'Customer',
     amount: order.totalPrice || 0,
     date: new Date(order.createdAt).toLocaleDateString(),
-    status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Processing' : order.status
+    status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
   });
 
   return (
@@ -109,10 +109,10 @@ function Orders() {
             </div>
           </div>
           <div className="stat-card processing">
-            <i className="fas fa-cog"></i>
+            <i className="fas fa-truck"></i>
             <div className="stat-data">
-              <span className="stat-num">{stats.processing}</span>
-              <span className="stat-label">Processing</span>
+              <span className="stat-num">{stats.shipped}</span>
+              <span className="stat-label">Shipped</span>
             </div>
           </div>
           <div className="stat-card completed">

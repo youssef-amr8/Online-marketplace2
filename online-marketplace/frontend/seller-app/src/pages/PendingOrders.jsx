@@ -27,7 +27,7 @@ function PendingOrders() {
         amount: order.totalPrice || 0,
         date: new Date(order.createdAt).toLocaleDateString(),
         status: order.status, // Keep original status for logic
-        displayStatus: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Processing' : order.status === 'Shipped' ? 'Shipped' : order.status,
+        displayStatus: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status === 'Shipped' ? 'Shipped' : order.status,
         image: order.items?.[0]?.itemId?.images?.[0] || 'https://via.placeholder.com/100',
         isFromDB: true // Mark as real order from DB
       }));
@@ -41,9 +41,9 @@ function PendingOrders() {
 
   const handleProcess = async (orderId) => {
     try {
-      await updateOrderStatus(orderId, 'Accepted'); // User wants "Processing"
+      await updateOrderStatus(orderId, 'Shipped'); // Direct to Shipped
       await fetchOrders();
-      alert(`Order #${orderId} is now processing!`);
+      alert(`Order #${orderId} is now Shipped!`);
     } catch (error) {
       console.error('Error updating order:', error);
       const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
@@ -53,7 +53,7 @@ function PendingOrders() {
 
   const handleShip = async (orderId) => {
     try {
-      await updateOrderStatus(orderId, 'Shipped'); // User defined "Ship" action
+      await updateOrderStatus(orderId, 'Shipped');
       await fetchOrders();
       alert(`Order #${orderId} marked as shipped!`);
     } catch (error) {
@@ -63,17 +63,7 @@ function PendingOrders() {
     }
   };
 
-  const handleDelivered = async (orderId) => { // User wants movement to history
-    try {
-      await updateOrderStatus(orderId, 'Delivered');
-      await fetchOrders();
-      alert(`Order #${orderId} marked as delivered! It will move to History.`);
-    } catch (error) {
-      console.error('Error updating order:', error);
-      const msg = error.response?.data?.message || error.message || 'Failed to update order status.';
-      alert(`Error: ${msg}`);
-    }
-  };
+
 
   const handleCancel = (orderId) => {
     if (window.confirm(`Are you sure you want to cancel order #${orderId}?`)) {
@@ -88,8 +78,7 @@ function PendingOrders() {
 
     const matchesFilter = filter === "all" ||
       (filter === "awaiting" && order.status === "Pending") ||
-      (filter === "processing" && order.status === "Accepted") ||
-      (filter === "shipped" && order.status === "Shipped");
+      (filter === "shipped" && (order.status === "Shipped" || order.status === "Accepted"));
     const matchesSearch = order.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.buyer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.id.toString().includes(searchTerm);
@@ -97,8 +86,8 @@ function PendingOrders() {
   });
 
   const awaitingCount = pendingOrders.filter(o => o.status === "Pending").length;
-  const processingCount = pendingOrders.filter(o => o.status === "Accepted").length;
-  const shippedCount = pendingOrders.filter(o => o.status === "Shipped").length;
+  // Merged processing count into shipped or removed
+  const shippedCount = pendingOrders.filter(o => o.status === "Shipped" || o.status === "Accepted").length;
 
   return (
     <div className="seller-app">
@@ -134,12 +123,6 @@ function PendingOrders() {
                 onClick={() => setFilter("awaiting")}
               >
                 <i className="fas fa-truck"></i> Awaiting Shipment ({awaitingCount})
-              </button>
-              <button
-                className={`filter-tab ${filter === "processing" ? "active" : ""}`}
-                onClick={() => setFilter("processing")}
-              >
-                <i className="fas fa-cog"></i> Processing ({processingCount})
               </button>
               <button
                 className={`filter-tab ${filter === "shipped" ? "active" : ""}`}
@@ -214,11 +197,6 @@ function PendingOrders() {
                     {order.isFromDB && order.status === 'Accepted' && (
                       <button className="btn-ship" onClick={() => handleShip(order.id)}>
                         <i className="fas fa-truck"></i> Ship Order
-                      </button>
-                    )}
-                    {order.isFromDB && order.status === 'Shipped' && (
-                      <button className="btn-ship" onClick={() => handleDelivered(order.id)}>
-                        <i className="fas fa-check-circle"></i> Complete Order
                       </button>
                     )}
                     {order.isFromDB && order.status !== 'Shipped' && (

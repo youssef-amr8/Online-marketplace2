@@ -29,7 +29,7 @@ const CategoryPage = () => {
         setSearchQuery(query);
         setCategoryName(`Search Results for "${query}"`);
         setCurrentSubcategories([]);
-        
+
         try {
           const results = await searchProducts(query);
           setProductsData(results || []);
@@ -43,57 +43,85 @@ const CategoryPage = () => {
       } else if (categorySlug) {
         window.scrollTo(0, 0);
         setSearchQuery("");
-        setIsLoading(true);
 
+        // Find current category structure
         const category = categories.find((c) => c.slug === categorySlug);
 
         if (category) {
           setCategoryName(category.name);
 
-          if (childSlug) {
-            setCategoryName(
-              category.subcategories
-                .find((s) => s.slug === subcategorySlug)
-                ?.children.find((c) => c.slug === childSlug)?.name || category.name
-            );
-            try {
-              const results = await fetchProductsByCategory(childSlug);
-              setProductsData(results || []);
-            } catch (error) {
-              console.error('Error fetching products:', error);
-              setProductsData([]);
-            }
-            setCurrentSubcategories([]);
-          } else if (subcategorySlug) {
+          // Case 1: Deepest level (Child Category) - e.g. /category/fashion/womens-fashion/clothing
+          if (childSlug && subcategorySlug) {
             const sub = category.subcategories.find((s) => s.slug === subcategorySlug);
-            setCategoryName(sub?.name || category.name);
+            const child = sub?.children?.find((c) => c.slug === childSlug);
 
-            if (sub?.children) {
-              setCurrentSubcategories(sub.children);
-              setProductsData([]);
-            } else {
+            if (child) {
+              setCategoryName(child.name);
+              setCurrentSubcategories([]); // No more levels
+
+              setIsLoading(true);
               try {
-                const results = await fetchProductsByCategory(subcategorySlug);
+                const results = await fetchProductsByCategory(childSlug);
                 setProductsData(results || []);
               } catch (error) {
                 console.error('Error fetching products:', error);
                 setProductsData([]);
+              } finally {
+                setIsLoading(false);
               }
+            }
+          }
+          // Case 2: Subcategory Level - e.g. /category/fashion/womens-fashion
+          else if (subcategorySlug) {
+            const sub = category.subcategories.find((s) => s.slug === subcategorySlug);
+
+            if (sub) {
+              setCategoryName(sub.name);
+
+              // If this subcategory has children, show them instead of products
+              if (sub.children && sub.children.length > 0) {
+                setCurrentSubcategories(sub.children);
+                setProductsData([]); // Clear products to force subcategory view
+                setIsLoading(false);
+              } else {
+                // No children = Leaf node = Show products
+                setCurrentSubcategories([]);
+                setIsLoading(true);
+                try {
+                  const results = await fetchProductsByCategory(subcategorySlug);
+                  setProductsData(results || []);
+                } catch (error) {
+                  console.error('Error fetching products:', error);
+                  setProductsData([]);
+                } finally {
+                  setIsLoading(false);
+                }
+              }
+            }
+          }
+          // Case 3: Top Level Category - e.g. /category/fashion
+          else {
+            // If this category has subcategories, show them instead of products
+            if (category.subcategories && category.subcategories.length > 0) {
+              setCurrentSubcategories(category.subcategories);
+              setProductsData([]); // Clear products to force subcategory view
+              setIsLoading(false);
+            } else {
+              // No subcategories = Leaf node = Show products
               setCurrentSubcategories([]);
+              setIsLoading(true);
+              try {
+                const results = await fetchProductsByCategory(categorySlug);
+                setProductsData(results || []);
+              } catch (error) {
+                console.error('Error fetching products:', error);
+                setProductsData([]);
+              } finally {
+                setIsLoading(false);
+              }
             }
-          } else {
-            // Main category - fetch products by category slug
-            try {
-              const results = await fetchProductsByCategory(categorySlug);
-              setProductsData(results || []);
-            } catch (error) {
-              console.error('Error fetching products:', error);
-              setProductsData([]);
-            }
-            setCurrentSubcategories(category.subcategories);
           }
         }
-        setIsLoading(false);
       }
     };
 
