@@ -7,7 +7,7 @@ services:
       - "5001:5000"
     environment:
       - PORT=5000
-      - DB_URI=mongodb://mongo:27017/marketPlace
+      - DB_URI=mongodb+srv://mireillemaherkhanna_db_user:<mireille>@cluster0.jmugj1z.mongodb.net/?appName=Cluster0
       - JWT_SECRET=K3f9sL!pQw8rZx1mT0vB
       - JWT_EXPIRES_IN=7d
     depends_on:
@@ -22,11 +22,12 @@ services:
 
   db-seed:
     build: ./backend/server
-    command: node scripts/seed.js
+    command: npm run seed
     environment:
-      - DB_URI=mongodb://mongo:27017/marketPlace
+      - DB_URI=mongodb+srv://mireillemaherkhanna_db_user:<mireille>@cluster0.jmugj1z.mongodb.net/?appName=Cluster0
     depends_on:
       - mongo
+    restart: "no" # Only run once on startup
 
 volumes:
   mongo-data:

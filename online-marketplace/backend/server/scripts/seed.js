@@ -185,7 +185,7 @@ const demoProducts = [
   {
     title: "Baby Onesies Pack (3 Pieces)",
     description: "100% cotton, soft fabric, snap closures, sizes 0-12 months",
-    category: "kids-baby",
+    category: "baby-clothing",
     price: 699,
     deliveryTimeEstimate: 2,
     images: ["https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=400&h=400&fit=crop"],
@@ -194,7 +194,7 @@ const demoProducts = [
   {
     title: "Kids School Backpack",
     description: "Water-resistant, multiple compartments, ergonomic straps",
-    category: "kids-baby",
+    category: "baby-clothing",
     price: 1299,
     deliveryTimeEstimate: 2,
     images: ["https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=400&h=400&fit=crop"],
@@ -224,7 +224,7 @@ const categories = [
   { name: "Fragrances", slug: "fragrances" },
   { name: "Bath & Body", slug: "bath-body" },
   { name: "Health & Wellness", slug: "health-wellness" },
-  { name: "Kids & Baby", slug: "kids-baby" }
+  { name: "Kids & Baby", slug: "baby-clothing" }
 ];
 
 async function seedDatabase() {
