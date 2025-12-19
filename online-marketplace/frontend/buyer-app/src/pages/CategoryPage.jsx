@@ -17,6 +17,7 @@ const CategoryPage = () => {
   const [sortBy, setSortBy] = useState("featured");
   const [priceFilter, setPriceFilter] = useState("all");
   const [selectedBrands, setSelectedBrands] = useState([]);
+  const [deliveryLocation, setDeliveryLocation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -161,6 +162,18 @@ const CategoryPage = () => {
       filtered = filtered.filter(p =>
         selectedBrands.includes(p.brand || "Other")
       );
+    }
+
+    // Apply Delivery Location filter
+    if (deliveryLocation.trim()) {
+      const city = deliveryLocation.toLowerCase().trim();
+      filtered = filtered.filter(p => {
+        // If seller hasn't defined service cities, assume they deliver everywhere (or nowhere, depending on business rule).
+        // Here assuming they deliver everywhere if list is empty, OR checking if city is in list.
+        const cities = p.serviceCities || [];
+        if (cities.length === 0) return true; // Treats empty as "Global" for legacy compatibility
+        return cities.some(c => c.toLowerCase().includes(city));
+      });
     }
 
     // Apply sorting
@@ -312,6 +325,19 @@ const CategoryPage = () => {
                 </label>
               </div>
             </div>
+
+            <div className="filter-section">
+              <h4>Delivery Location</h4>
+              <div className="filter-input-container">
+                <input
+                  type="text"
+                  placeholder="Enter City..."
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                  className="filter-text-input"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Products Section */}
@@ -358,6 +384,7 @@ const CategoryPage = () => {
                     setSearchQuery("");
                     setPriceFilter("all");
                     setSelectedBrands([]);
+                    setDeliveryLocation("");
                   }} className="amazon-btn amazon-btn-secondary">Clear Filters</button>
                 </div>
               )}

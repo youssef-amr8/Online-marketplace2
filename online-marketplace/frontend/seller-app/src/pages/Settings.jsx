@@ -1,6 +1,7 @@
 import Sidebar from "../components/Sidebar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import sellerService from "../services/sellerService";
 import "./Settings.css";
 
 function Settings() {
@@ -19,6 +20,9 @@ function Settings() {
         storeName: "",
         storeDescription: "",
         address: "",
+        city: "",
+        serviceCities: "", // String for input, converted to array on save
+        baseDeliveryFee: 50,
     });
 
     const [notifications, setNotifications] = useState({
@@ -30,18 +34,50 @@ function Settings() {
     });
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
-        if (userData.isAuthenticated && userData.type === "seller") {
-            setUser(userData);
-            setProfile((prev) => ({
-                ...prev,
-                name: userData.name || "",
-                email: userData.email || "",
-            }));
-        } else {
-            navigate("/login");
-        }
-        setIsLoading(false);
+        const fetchSettings = async () => {
+            try {
+                const userData = JSON.parse(localStorage.getItem("user") || "{}");
+                if (!userData.isAuthenticated || userData.type !== "seller") {
+                    navigate("/login");
+                    return;
+                }
+
+                setUser(userData);
+
+                // Fetch real profile from backend
+                try {
+                    const response = await sellerService.getProfile();
+                    if (response.success) {
+                        const backendProfile = response.data;
+                        const p = backendProfile.sellerProfile || {};
+
+                        setProfile({
+                            name: backendProfile.name || "",
+                            email: backendProfile.email || "",
+                            phone: "", // Not in schema yet
+                            storeName: p.storeName || "",
+                            storeDescription: p.storeDescription || "",
+                            address: "", // Not in schema
+                            city: p.city || "",
+                            serviceCities: (p.serviceCities || []).join(", "),
+                            baseDeliveryFee: p.baseDeliveryFee || 50
+                        });
+
+                        // Sync notification preferences if they were backend-backed too (skipping for now)
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch profile settings", err);
+                    setMessage({ type: "error", text: "Failed to load settings from server" });
+                }
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSettings();
     }, [navigate]);
 
     const handleProfileChange = (e) => {
@@ -55,17 +91,36 @@ function Settings() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+            // Prepare data for backend
+            const updateData = {
+                name: profile.name,
+                storeName: profile.storeName,
+                storeDescription: profile.storeDescription,
+                city: profile.city,
+                // Convert string back to array
+                serviceCities: profile.serviceCities.split(",").map(s => s.trim()).filter(Boolean),
+                baseDeliveryFee: Number(profile.baseDeliveryFee)
+            };
 
-        // Update localStorage
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
-        userData.name = profile.name;
-        localStorage.setItem("user", JSON.stringify(userData));
+            await sellerService.updateProfile(updateData);
 
-        setMessage({ type: "success", text: "Settings saved successfully!" });
-        setIsSaving(false);
-        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+            // Update localStorage user name if changed
+            const userData = JSON.parse(localStorage.getItem("user") || "{}");
+            userData.name = profile.name;
+            localStorage.setItem("user", JSON.stringify(userData));
+
+            setMessage({ type: "success", text: "Settings saved successfully!" });
+            alert("Success: Settings saved to database!"); // Explicit feedback
+        } catch (err) {
+            console.error(err);
+            const errMsg = err.response?.data?.message || err.message || "Unknown error";
+            setMessage({ type: "error", text: `Failed to save: ${errMsg}` });
+            alert(`Error: Failed to save. ${errMsg}`); // Explicit feedback
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+        }
     };
 
     if (isLoading) {
@@ -206,6 +261,39 @@ function Settings() {
                                             placeholder="Describe your store..."
                                             rows={4}
                                         />
+                                    </div>
+                                </div>
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label>Store City (Base Location)</label>
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={profile.city}
+                                            onChange={handleProfileChange}
+                                            placeholder="e.g. Cairo"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Base Delivery Fee (EGP)</label>
+                                        <input
+                                            type="number"
+                                            name="baseDeliveryFee"
+                                            value={profile.baseDeliveryFee}
+                                            onChange={handleProfileChange}
+                                            placeholder="50"
+                                        />
+                                    </div>
+                                    <div className="form-group full-width">
+                                        <label>Serviceable Cities (Comma separated)</label>
+                                        <input
+                                            type="text"
+                                            name="serviceCities"
+                                            value={profile.serviceCities}
+                                            onChange={handleProfileChange}
+                                            placeholder="e.g. Cairo, Giza, Alexandria"
+                                        />
+                                        <small className="form-help">Enter the cities where you can deliver orders.</small>
                                     </div>
                                 </div>
                                 <div className="store-stats">

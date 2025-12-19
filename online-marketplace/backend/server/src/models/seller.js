@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 const sellerProfileSchema = new mongoose.Schema({
     storeName: String,
     taxId: String,
-    serviceAreas: [String] // optional: city/zip codes
+    // Serviceability & Location
+    city: { type: String, default: '' },
+    serviceCities: [String], // List of cities seller delivers to
+    baseDeliveryFee: { type: Number, default: 50 },
+    deliveryFeePerKm: { type: Number, default: 10 } // Simulated distance fee
 }, { _id: false });
 
 const sellerSchema = new mongoose.Schema({

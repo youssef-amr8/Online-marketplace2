@@ -52,7 +52,12 @@ export const ProductProvider = ({ children }) => {
                         stock: item.stock,
                         delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
                         category: item.category,
-                        brand: item.sellerId?.name || 'Brand'
+                        brand: item.sellerId?.name || 'Brand',
+                        // Serviceability Data
+                        serviceCities: item.sellerId?.sellerProfile?.serviceCities || [],
+                        sellerCity: item.sellerId?.sellerProfile?.city || '',
+                        baseDeliveryFee: item.sellerId?.sellerProfile?.baseDeliveryFee || 50,
+                        deliveryFeePerKm: item.sellerId?.sellerProfile?.deliveryFeePerKm || 10
                     });
                 });
             }
@@ -90,7 +95,14 @@ export const ProductProvider = ({ children }) => {
                 inStock: item.stock > 0,
                 stock: item.stock,
                 delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
-                category: item.category
+                delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
+                category: item.category,
+                brand: item.sellerId?.name || 'Brand',
+                // Serviceability Data
+                serviceCities: item.sellerId?.sellerProfile?.serviceCities || [],
+                sellerCity: item.sellerId?.sellerProfile?.city || '',
+                baseDeliveryFee: item.sellerId?.sellerProfile?.baseDeliveryFee || 50,
+                deliveryFeePerKm: item.sellerId?.sellerProfile?.deliveryFeePerKm || 10
             }));
 
             return transformedProducts;
@@ -162,7 +174,14 @@ export const ProductProvider = ({ children }) => {
                 inStock: item.stock > 0,
                 stock: item.stock,
                 delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
-                category: item.category
+                delivery: `Delivery in ${item.deliveryTimeEstimate || 3} days`,
+                category: item.category,
+                brand: item.sellerId?.name || 'Brand',
+                // Serviceability Data
+                serviceCities: item.sellerId?.sellerProfile?.serviceCities || [],
+                sellerCity: item.sellerId?.sellerProfile?.city || '',
+                baseDeliveryFee: item.sellerId?.sellerProfile?.baseDeliveryFee || 50,
+                deliveryFeePerKm: item.sellerId?.sellerProfile?.deliveryFeePerKm || 10
             }));
 
             return transformedProducts;

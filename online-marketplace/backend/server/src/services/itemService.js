@@ -7,7 +7,11 @@ exports.createItem = async (data, sellerId) => {
 
 exports.listItems = async (filter = {}, { page = 1, limit = 20 } = {}) => {
   const skip = (page - 1) * limit;
-  const items = await Item.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 });
+  const items = await Item.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .populate('sellerId', 'name email sellerProfile');
   const count = await Item.countDocuments(filter);
   return { items, count, page, limit };
 };
@@ -37,7 +41,7 @@ exports.updateItem = async (itemId, sellerId, data) => {
   const item = await Item.findById(itemId);
   if (!item) throw new Error('Item not found');
   if (!item.sellerId.equals(sellerId)) throw new Error('Not authorized to update this item');
-  
+
   // Update allowed fields
   if (data.title !== undefined) item.title = data.title;
   if (data.description !== undefined) item.description = data.description;
@@ -45,7 +49,7 @@ exports.updateItem = async (itemId, sellerId, data) => {
   if (data.stock !== undefined) item.stock = data.stock;
   if (data.category !== undefined) item.category = data.category;
   if (data.images !== undefined) item.images = data.images;
-  
+
   await item.save();
   return item;
 };

@@ -49,8 +49,23 @@ const CheckoutPage = () => {
   };
 
   const calculateShipping = () => {
-    const subtotal = getCartTotal();
-    return subtotal >= 500 ? 0 : 50; // Free shipping over 500 EGP
+    // New Logic: Sum of delivery fees based on distance/city
+    if (!formData.city) return 0;
+
+    return cartItems.reduce((total, item) => {
+      let fee = item.baseDeliveryFee || 50;
+
+      // Simulating distance cost: +10 EGP if cities don't match
+      if (item.sellerCity && formData.city &&
+        item.sellerCity.toLowerCase().trim() !== formData.city.toLowerCase().trim()) {
+        fee += (item.deliveryFeePerKm || 10);
+      }
+
+      return total + (fee * item.quantity); // Fee per item or per order? Usually per order per seller. 
+      // Simplified: Fee per item for now as "cart" doesn't group by seller easily here without refactor.
+      // Better: Fee * 1 (per unique item line) or Fee * Quantity?
+      // Let's assume Fee is per Shipment (Line Item) for simplicity in this artifact.
+    }, 0);
   };
 
   const calculateTax = () => {
@@ -114,6 +129,17 @@ const CheckoutPage = () => {
 
     if (!formData.postalCode.trim()) {
       newErrors.postalCode = "Postal code is required";
+    }
+
+    // Serviceability Check
+    const unserviceableItems = cartItems.filter(item => {
+      const cities = item.serviceCities || [];
+      if (cities.length === 0) return false; // Delivers everywhere
+      return !cities.some(c => c.toLowerCase().trim() === formData.city.toLowerCase().trim());
+    });
+
+    if (unserviceableItems.length > 0) {
+      newErrors.city = `Some items cannot be delivered to ${formData.city}: ${unserviceableItems.map(i => i.name).join(", ")}`;
     }
 
     setErrors(newErrors);
@@ -434,12 +460,7 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {calculateShipping() > 0 && (
-              <div className="shipping-notice">
-                <i className="fas fa-info-circle"></i>
-                Add EGP {formatPrice(500 - getCartTotal())} more for FREE shipping
-              </div>
-            )}
+            {/* Shipping notice removed as fees are now distance-based */}
           </div>
 
           <button onClick={() => navigate("/cart")} className="back-to-cart-btn">
