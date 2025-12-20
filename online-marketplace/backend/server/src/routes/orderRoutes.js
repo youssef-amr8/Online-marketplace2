@@ -5,6 +5,7 @@ const auth = require('../middlewares/auth');
 
 router.get('/', auth, orderController.getBuyerOrders); // buyer gets their orders
 router.get('/seller', auth, orderController.getSellerOrders); // seller gets their orders
+router.get('/:id', auth, orderController.getOrderById); // get single order by ID
 router.post('/', auth, orderController.createOrder); // buyer
 router.patch('/:id/status', auth, orderController.updateStatus); // seller updates status
 

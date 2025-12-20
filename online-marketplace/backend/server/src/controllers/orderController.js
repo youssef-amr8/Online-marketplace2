@@ -39,6 +39,15 @@ exports.getBuyerOrders = async (req, res) => {
   } catch (err) { error(res, err.message); }
 };
 
+exports.getOrderById = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const { id } = req.params;
+    const order = await orderService.getOrderById(id, userId);
+    success(res, order);
+  } catch (err) { error(res, err.message, 400); }
+};
+
 exports.getSellerOrders = async (req, res) => {
   try {
     // JWT token contains 'id', not '_id'

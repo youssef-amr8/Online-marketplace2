@@ -58,6 +58,26 @@ exports.getBuyerOrders = async (buyerId) => {
   return orders;
 };
 
+exports.getOrderById = async (orderId, userId) => {
+  const order = await Order.findById(orderId)
+    .populate('buyerId', 'name email')
+    .populate('sellerId', 'name email sellerProfile')
+    .populate('items.itemId', 'title images price description');
+
+  if (!order) throw new Error('Order not found');
+
+  // Check if user is buyer or seller of this order
+  const userIdStr = userId.toString();
+  const isBuyer = order.buyerId._id.toString() === userIdStr;
+  const isSeller = order.sellerId._id.toString() === userIdStr;
+
+  if (!isBuyer && !isSeller) {
+    throw new Error('Not authorized to view this order');
+  }
+
+  return order;
+};
+
 exports.getSellerOrders = async (sellerId) => {
   const orders = await Order.find({ sellerId })
     .populate('buyerId', 'name email')

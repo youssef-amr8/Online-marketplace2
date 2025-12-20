@@ -105,11 +105,36 @@ const loginSeller = async (req, res) => {
 // Logout user
 const logout = async (req, res) => {
   try {
-    // Clear the cookie
     res.clearCookie('token');
-    res.status(200).json({ message: 'Logged out successfully' });
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Logout failed', error: err.message });
+    res.status(500).json({ success: false, message: 'Logout failed', error: err.message });
+  }
+};
+
+// Get current logged-in user
+const getMe = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const role = req.user.role;
+
+    let user;
+    if (role === 'buyer') {
+      user = await Buyer.findById(userId).select('-passwordHash');
+    } else if (role === 'seller') {
+      user = await Seller.findById(userId).select('-passwordHash');
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: { ...user.toObject(), role }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to get user', error: err.message });
   }
 };
 
@@ -119,4 +144,5 @@ module.exports = {
   loginBuyer,
   loginSeller,
   logout,
+  getMe,
 };
