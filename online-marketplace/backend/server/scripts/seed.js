@@ -32,13 +32,13 @@ const categories = [
   { name: "Fragrances", slug: "fragrances" },
   { name: "Bath & Body", slug: "bath-body" },
   { name: "Health & Wellness", slug: "health-wellness" },
-  { name: "Kids & Baby", slug: "kids-baby" }
+  { name: "Kids & Baby", slug: "baby-clothing" }
 ];
 
 async function seedDatabase() {
   try {
     console.log('🌱 Connecting to MongoDB...');
-    await mongoose.connect(mongoURL);
+    await connectDB();
     console.log('✅ Connected to MongoDB');
 
     // Clear existing data

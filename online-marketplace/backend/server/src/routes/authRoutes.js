@@ -10,6 +10,7 @@ router.post('/login/buyer', authController.loginBuyer);
 router.post('/login/seller', authController.loginSeller);
 
 // Protected route
+router.get('/me', authMiddleware, authController.getMe);
 router.post('/logout', authMiddleware, authController.logout);
 router.put('/update/seller', authMiddleware, authController.updateSeller);
 router.put('/update/buyer', authMiddleware, authController.updateBuyer);

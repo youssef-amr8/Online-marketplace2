@@ -50,13 +50,8 @@ app.use((err, req, res, next) => {
 // ====================
 // 5️⃣ DATABASE CONNECTION
 // ====================
-const mongoURL = process.env.DB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/marketPlace';
-mongoose.connect(mongoURL)
-  .then(() => console.log('Connected to MongoDB:', mongoURL))
-  .catch(err => {
-    console.error('MongoDB connection error', err);
-    process.exit(1);
-  });
+const connectDB = require('./src/config/db');
+connectDB();
 
 // ====================
 // 6️⃣ START SERVER

@@ -60,7 +60,7 @@ const categories = [
       {
         id: 201,
         name: "Women's Clothing",
-        slug: "womens-fashion",
+        slug: "womens-clothing",
         image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=300&fit=crop",
       },
       {
@@ -78,7 +78,7 @@ const categories = [
       {
         id: 204,
         name: "Men's Clothing",
-        slug: "mens-fashion",
+        slug: "mens-clothing",
         image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=300&fit=crop",
       },
       {
@@ -96,7 +96,7 @@ const categories = [
       {
         id: 207,
         name: "Kids & Baby Clothing",
-        slug: "kids-baby",
+        slug: "baby-clothing",
         image: "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=400&h=300&fit=crop",
       },
     ],
