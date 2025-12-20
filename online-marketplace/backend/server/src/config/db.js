@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 
+// Suppress Mongoose 7 deprecation warning
+mongoose.set('strictQuery', false);
+
 const connectDB = async () => {
     try {
-        const mongoURL = process.env.DB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/marketPlace';
+        const mongoURL = process.env.DB_URI || process.env.MONGO_URL || 'mongodb+srv://mireillemaherkhanna_db_user:mireille@cluster0.jmugj1z.mongodb.net/?appName=Cluster0';
 
         // Hide password in console logs for security
         const sanitizedURL = mongoURL.replace(/:([^@]+)@/, ':****@');

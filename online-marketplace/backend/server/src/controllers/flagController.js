@@ -28,22 +28,15 @@ exports.createFlag = async (req, res) => {
 
     const flag = await Flag.create({
       reporterId,
-
-    const flag = await Flag.create({
-      reporterId,
       reporterModel,
       reportedUserId,
-      reportedUserId,
       reportedUserModel,
-      orderId: orderId || undefined,
       orderId: orderId || undefined,
       reason: reason.trim()
     });
     success(res, flag, 201);
   } catch (err) {
-  } catch (err) {
     console.error('Flag creation error:', err);
-    error(res, err.message, 400);
     error(res, err.message, 400);
   }
 };

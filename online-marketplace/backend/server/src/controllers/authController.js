@@ -302,6 +302,6 @@ module.exports = {
   loginSeller,
   logout,
   updateSeller,
-  updateBuyer
-  getMe,
+  updateBuyer,
+  getMe
 };
