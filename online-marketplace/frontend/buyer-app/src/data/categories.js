@@ -6,6 +6,7 @@ export const categories = [
     name: "Electronics",
     icon: "📱",
     slug: "electronics",
+    image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 101,
@@ -63,6 +64,7 @@ export const categories = [
     name: "Fashion",
     icon: "👗",
     slug: "fashion",
+    image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 201,
@@ -178,6 +180,7 @@ export const categories = [
     name: "Beauty & Personal Care",
     icon: "💄",
     slug: "beauty-personal-care",
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 301,
@@ -228,6 +231,7 @@ export const categories = [
     name: "Home & Kitchen",
     icon: "🏠",
     slug: "home-kitchen",
+    image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 401,
@@ -278,6 +282,7 @@ export const categories = [
     name: "Supermarket & Grocery",
     icon: "🛒",
     slug: "supermarket-grocery",
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 501,
@@ -321,6 +326,7 @@ export const categories = [
     name: "Sports & Outdoors",
     icon: "⚽",
     slug: "sports-outdoors",
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 601,
@@ -357,6 +363,7 @@ export const categories = [
     name: "Books & Stationery",
     icon: "📚",
     slug: "books-stationery",
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 701,
@@ -400,6 +407,7 @@ export const categories = [
     name: "Toys & Games",
     icon: "🎮",
     slug: "toys-games",
+    image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 801,
@@ -436,6 +444,7 @@ export const categories = [
     name: "Health & Medical",
     icon: "🏥",
     slug: "health-medical",
+    image: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400&h=300&fit=crop",
     subcategories: [
       {
         id: 901,

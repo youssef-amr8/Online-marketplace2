@@ -87,17 +87,28 @@ function Orders() {
     }
   };
 
-  const mapOrderToDisplay = (order) => ({
-    id: order._id || order.id,
-    product: order.items?.[0]?.itemId?.title || 'Product',
-    qty: order.items?.[0]?.quantity || 1,
-    buyer: order.buyerId?.name || 'Customer',
-    buyerId: order.buyerId?._id || order.buyerId,
-    amount: order.totalPrice || 0,
-    date: new Date(order.createdAt).toLocaleDateString(),
-    rawStatus: order.status, // Keep raw status for logic
-    status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
-  });
+  const mapOrderToDisplay = (order) => {
+    const allItems = order.items?.map(item => ({
+      id: item.itemId?._id || item.itemId,
+      title: item.itemId?.title || 'Product',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+    })) || [];
+
+    return {
+      id: order._id || order.id,
+      items: allItems,
+      product: allItems.map(i => i.title).join(', ') || 'Product',
+      totalQty: allItems.reduce((sum, i) => sum + i.quantity, 0),
+      buyer: order.buyerId?.name || 'Customer',
+      buyerId: order.buyerId?._id || order.buyerId,
+      amount: order.totalPrice || 0,
+      date: new Date(order.createdAt).toLocaleDateString(),
+      rawStatus: order.status,
+      status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
+    };
+  };
 
   const handleFlagBuyer = async () => {
     if (!flagReason.trim()) {
@@ -221,8 +232,24 @@ function Orders() {
               <tbody>
                 {pendingOrders.map((order) => (
                   <tr key={order.id}>
-                    <td className="order-id">#{order.id}</td>
-                    <td className="product-cell">{order.product}</td>
+                    <td className="order-id">#{order.id.substring(0, 8)}</td>
+                    <td className="product-cell">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {order.items?.slice(0, 3).map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+                            />
+                            <span style={{ fontSize: '13px' }}>{item.title} x{item.quantity}</span>
+                          </div>
+                        ))}
+                        {order.items?.length > 3 && (
+                          <span style={{ fontSize: '12px', color: '#666' }}>+{order.items.length - 3} more items</span>
+                        )}
+                      </div>
+                    </td>
                     <td>{order.buyer}</td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
@@ -290,8 +317,24 @@ function Orders() {
               <tbody>
                 {recentCompleted.map((order) => (
                   <tr key={order.id}>
-                    <td className="order-id">#{order.id}</td>
-                    <td className="product-cell">{order.product}</td>
+                    <td className="order-id">#{order.id.substring(0, 8)}</td>
+                    <td className="product-cell">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {order.items?.slice(0, 2).map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px' }}
+                            />
+                            <span style={{ fontSize: '12px' }}>{item.title} x{item.quantity}</span>
+                          </div>
+                        ))}
+                        {order.items?.length > 2 && (
+                          <span style={{ fontSize: '11px', color: '#666' }}>+{order.items.length - 2} more</span>
+                        )}
+                      </div>
+                    </td>
                     <td>{order.buyer}</td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>

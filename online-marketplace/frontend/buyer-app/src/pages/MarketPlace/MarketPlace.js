@@ -323,10 +323,11 @@ const MarketPlace = () => {
               <i className="fas fa-chevron-left"></i>
             </button>
             <button
-              className={`control - btn ${isCarouselPaused ? '' : 'pause-btn'} `}
+              className={`control-btn ${isCarouselPaused ? 'play-btn' : 'pause-btn'}`}
               onClick={() => setIsCarouselPaused(!isCarouselPaused)}
+              title={isCarouselPaused ? 'Start Carousel' : 'Pause Carousel'}
             >
-              <i className={`fas ${isCarouselPaused ? 'fa-play' : 'fa-pause'} `}></i>
+              <i className={`fas ${isCarouselPaused ? 'fa-play' : 'fa-pause'}`}></i>
             </button>
             <button className="control-btn next-btn" onClick={handleNextClick}>
               <i className="fas fa-chevron-right"></i>

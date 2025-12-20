@@ -36,17 +36,28 @@ function History() {
       // Filter for history statuses
       const historyOrders = orders
         .filter(order => order && ['Delivered', 'Refunded', 'Cancelled'].includes(order.status))
-        .map(order => ({
-          id: order._id || order.id,
-          product: order.items?.[0]?.itemId?.title || 'Product',
-          qty: order.items?.[0]?.quantity || 1,
-          buyer: order.buyerId?.name || 'Customer',
-          buyerId: order.buyerId?._id || order.buyerId,
-          amount: order.totalPrice || 0,
-          date: new Date(order.createdAt).toLocaleDateString(),
-          status: order.status,
-          image: order.items?.[0]?.itemId?.images?.[0] || 'https://via.placeholder.com/100'
-        }));
+        .map(order => {
+          const allItems = order.items?.map(item => ({
+            id: item.itemId?._id || item.itemId,
+            title: item.itemId?.title || 'Product',
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+          })) || [];
+
+          return {
+            id: order._id || order.id,
+            items: allItems,
+            product: allItems.map(i => i.title).join(', ') || 'Product',
+            qty: allItems.reduce((sum, i) => sum + i.quantity, 0),
+            buyer: order.buyerId?.name || 'Customer',
+            buyerId: order.buyerId?._id || order.buyerId,
+            amount: order.totalPrice || 0,
+            date: new Date(order.createdAt).toLocaleDateString(),
+            status: order.status,
+            image: allItems[0]?.image || 'https://via.placeholder.com/100'
+          };
+        });
       setSoldOrders(historyOrders);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -200,11 +211,18 @@ function History() {
                 <tbody>
                   {filteredOrders.map((order) => (
                     <tr key={order.id}>
-                      <td className="order-id">#{order.id}</td>
+                      <td className="order-id">#{order.id.substring(0, 8)}</td>
                       <td>
-                        <div className="product-cell-with-img">
-                          <img src={order.image} alt={order.product} />
-                          <span>{order.product}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {order.items?.slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="product-cell-with-img" style={{ marginBottom: idx < order.items.length - 1 ? '4px' : 0 }}>
+                              <img src={item.image} alt={item.title} style={{ width: '32px', height: '32px', objectFit: 'cover' }} />
+                              <span style={{ fontSize: '12px' }}>{item.title} x{item.quantity}</span>
+                            </div>
+                          ))}
+                          {order.items?.length > 3 && (
+                            <span style={{ fontSize: '11px', color: '#666' }}>+{order.items.length - 3} more</span>
+                          )}
                         </div>
                       </td>
                       <td>{order.buyer}</td>

@@ -418,36 +418,135 @@
 .MarketPlace .carousel-controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-top: 15px;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
 }
 
+/* Base Control Button */
 .MarketPlace .control-btn {
-  background-color: #232F3E;
-  color: white;
+  cursor: pointer;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Arrow Navigation Buttons */
+.MarketPlace .prev-btn,
+.MarketPlace .next-btn {
+  background: linear-gradient(135deg, #232F3E 0%, #37475A 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
-.MarketPlace .control-btn:hover {
-  background-color: #37475A;
+/* Hide FontAwesome icons in arrow buttons */
+.MarketPlace .prev-btn i,
+.MarketPlace .next-btn i {
+  display: none;
 }
 
+.MarketPlace .prev-btn::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 12px solid white;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.MarketPlace .next-btn::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid white;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.MarketPlace .prev-btn:hover,
+.MarketPlace .next-btn:hover {
+  background: linear-gradient(135deg, #37475A 0%, #4A5F7A 100%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.MarketPlace .prev-btn:active,
+.MarketPlace .next-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Pause Button - Bigger and More Prominent */
 .MarketPlace .pause-btn {
-  background-color: #C7511F;
+  background: linear-gradient(135deg, #FF9900 0%, #C7511F 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(255, 153, 0, 0.3);
+  color: white;
 }
 
 .MarketPlace .pause-btn:hover {
-  background-color: #A0410F;
+  background: linear-gradient(135deg, #FFB84D 0%, #E06020 100%);
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 8px 20px rgba(255, 153, 0, 0.5);
 }
+
+.MarketPlace .pause-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Play Button - Same style as Pause for consistency */
+.MarketPlace .play-btn {
+  background: linear-gradient(135deg, #00A8E1 0%, #0066CC 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(0, 168, 225, 0.3);
+  color: white;
+}
+
+.MarketPlace .play-btn:hover {
+  background: linear-gradient(135deg, #33BFEF 0%, #3399FF 100%);
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 8px 20px rgba(0, 168, 225, 0.5);
+}
+
+.MarketPlace .play-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
 
 /* Installment Plans */
 .MarketPlace .installment-section {

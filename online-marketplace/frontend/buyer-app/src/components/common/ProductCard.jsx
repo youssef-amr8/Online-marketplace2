@@ -32,7 +32,20 @@ const ProductCard = ({ product }) => {
                     <h3 className="product-card-title">{product.name}</h3>
 
                     <div className="product-card-rating">
-                        <span className="stars">★★★★★</span>
+                        <span className="stars">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <span
+                                    key={star}
+                                    style={{
+                                        color: product.rating && star <= Math.round(product.rating)
+                                            ? '#ffc107'
+                                            : '#d1d5db'
+                                    }}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </span>
                         <span className="rating-count">({product.reviewCount || 0})</span>
                     </div>
 

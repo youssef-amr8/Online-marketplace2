@@ -230,7 +230,7 @@ function OrderCard({ order, onConfirmDelivery, onCancelOrder }) {
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Select Product:</label>
           <select
             value={selectedProductForComment || ''}
-            onChange={(e) => setSelectedProductForComment(parseInt(e.target.value))}
+            onChange={(e) => setSelectedProductForComment(e.target.value)}
             style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             {order.items.map(item => (
@@ -347,17 +347,31 @@ function OrderCard({ order, onConfirmDelivery, onCancelOrder }) {
 
           <div className="order-items">
             {order.items?.map((item, index) => (
-              <div key={item.id || index} className="order-item">
+              <div key={item.id || index} className="order-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px', marginBottom: '8px' }}>
                 <Link to={`/product/${item.id}`} className="product-link">
-                  <img src={item.image} alt={item.name} className="item-image" />
+                  <img src={item.image} alt={item.name} className="item-image" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px' }} />
                 </Link>
-                <div className="item-details">
+                <div className="item-details" style={{ flex: 1 }}>
                   <Link to={`/product/${item.id}`} className="product-link">
                     <h4 className="item-title">{item.name}</h4>
                   </Link>
                   <p className="item-quantity">Quantity: {item.quantity}</p>
                   <p className="item-price">EGP {formatPrice(item.price * item.quantity)}</p>
                 </div>
+                {order.status === 'delivered' && (
+                  <button
+                    className="amazon-btn amazon-btn-secondary"
+                    onClick={() => {
+                      setSelectedProductForComment(item.id);
+                      setComment('');
+                      setRating(0);
+                      setActiveModal('comment');
+                    }}
+                    style={{ whiteSpace: 'nowrap', padding: '8px 12px', fontSize: '13px' }}
+                  >
+                    ✍️ Review
+                  </button>
+                )}
               </div>
             ))}
           </div>

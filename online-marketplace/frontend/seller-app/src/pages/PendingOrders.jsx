@@ -24,20 +24,31 @@ function PendingOrders() {
     setIsLoading(true);
     try {
       const orders = await getSellerOrders();
-      const mappedOrders = orders.map(order => ({
-        id: order._id || order.id,
-        product: order.items?.[0]?.itemId?.title || 'Product',
-        qty: order.items?.[0]?.quantity || 1,
-        buyer: order.buyerId?.name || 'Customer',
-        buyerId: order.buyerId?._id || order.buyerId,
-        email: order.buyerId?.email || '',
-        amount: order.totalPrice || 0,
-        date: new Date(order.createdAt).toLocaleDateString(),
-        status: order.status, // Keep original status for logic
-        displayStatus: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status === 'Shipped' ? 'Shipped' : order.status,
-        image: order.items?.[0]?.itemId?.images?.[0] || 'https://via.placeholder.com/100',
-        isFromDB: true // Mark as real order from DB
-      }));
+      const mappedOrders = orders.map(order => {
+        const allItems = order.items?.map(item => ({
+          id: item.itemId?._id || item.itemId,
+          title: item.itemId?.title || 'Product',
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+        })) || [];
+
+        return {
+          id: order._id || order.id,
+          items: allItems,
+          product: allItems[0]?.title || 'Product',
+          qty: allItems.reduce((sum, i) => sum + i.quantity, 0),
+          buyer: order.buyerId?.name || 'Customer',
+          buyerId: order.buyerId?._id || order.buyerId,
+          email: order.buyerId?.email || '',
+          amount: order.totalPrice || 0,
+          date: new Date(order.createdAt).toLocaleDateString(),
+          status: order.status,
+          displayStatus: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status === 'Shipped' ? 'Shipped' : order.status,
+          image: allItems[0]?.image || 'https://via.placeholder.com/100',
+          isFromDB: true
+        };
+      });
       setPendingOrders(mappedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -231,18 +242,25 @@ function PendingOrders() {
             <div className="orders-list-enhanced">
               {filteredOrders.map((order) => (
                 <div key={order.id} className="order-card">
-                  <div className="order-main">
-                    <img src={order.image} alt={order.product} className="order-img" />
-                    <div className="order-details">
-                      <div className="order-header">
-                        <span className="order-id">Order #{order.id}</span>
-                        <span className={`status-badge ${order.status === "Accepted" ? "processing" : order.status === "Shipped" ? "shipped" : "pending"}`}>
-                          {order.displayStatus || order.status}
-                        </span>
-                      </div>
-                      <h3 className="order-product">{order.product}</h3>
-                      <p className="order-qty">Quantity: {order.qty}</p>
+                  <div className="order-main" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <div className="order-header" style={{ width: '100%', marginBottom: '12px' }}>
+                      <span className="order-id">Order #{order.id.substring(0, 8)}</span>
+                      <span className={`status-badge ${order.status === "Accepted" ? "processing" : order.status === "Shipped" ? "shipped" : "pending"}`}>
+                        {order.displayStatus || order.status}
+                      </span>
                     </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', width: '100%' }}>
+                      {order.items?.map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', background: '#f8f9fa', borderRadius: '8px', minWidth: '200px' }}>
+                          <img src={item.image} alt={item.title} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} />
+                          <div>
+                            <p style={{ fontWeight: '500', fontSize: '14px', margin: 0 }}>{item.title}</p>
+                            <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0' }}>Qty: {item.quantity} • ${item.price}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="order-qty" style={{ marginTop: '10px' }}>Total Items: {order.qty}</p>
                   </div>
                   <div className="order-customer">
                     <h4>Customer</h4>
