@@ -1,7 +1,7 @@
 // src/pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { categories } from "../data/categories";
+// import { categories } from "../data/categories";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductContext";
@@ -12,7 +12,7 @@ const ProductDetailPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { fetchProductById } = useProducts();
 
   const [product, setProduct] = useState(null);
@@ -25,6 +25,9 @@ const ProductDetailPage = () => {
   const [commentRating, setCommentRating] = useState(5);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -92,6 +95,9 @@ const ProductDetailPage = () => {
       setCommentText("");
       setCommentRating(5);
       setShowCommentForm(false);
+      // Reset summary since we have a new comment
+      setSummary(null);
+      setShowSummary(false);
     } catch (error) {
       console.error("Error submitting comment:", error);
       const errorMsg = error.response?.data?.message || error.message || "Failed to submit comment";
@@ -114,6 +120,43 @@ const ProductDetailPage = () => {
   const handleBuyNow = () => {
     addToCart(product, quantity);
     navigate("/cart");
+  };
+
+  const handleViewSummary = async () => {
+    if (summary) {
+      // If summary already exists, just toggle display
+      setShowSummary(!showSummary);
+      return;
+    }
+
+    if (comments.length === 0) {
+      alert("No reviews available to summarize.");
+      return;
+    }
+
+    setLoadingSummary(true);
+    setShowSummary(true);
+    try {
+      // API call with longer timeout handled by backend (5 minutes)
+      const summaryData = await commentService.getCommentsSummary(productId);
+      setSummary(summaryData);
+    } catch (error) {
+      console.error("Error fetching summary:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to generate summary";
+      if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+        setSummary({
+          summary: "Summary generation is taking longer than expected. This may be the first time loading the AI model (which can take 5-10 minutes). Please try again in a few minutes, or read the individual reviews below.",
+          error: true
+        });
+      } else {
+        setSummary({
+          summary: "Unable to generate summary at this time. Please read the individual reviews below.",
+          error: true
+        });
+      }
+    } finally {
+      setLoadingSummary(false);
+    }
   };
 
   const renderStars = (rating) => {
@@ -375,6 +418,22 @@ const ProductDetailPage = () => {
         <div className="product-reviews-section">
           <div className="reviews-header">
             <h2>Customer Reviews</h2>
+            <div className="reviews-header-actions">
+              {comments.length > 0 && (
+                <button
+                  className="btn-view-summary"
+                  onClick={handleViewSummary}
+                  disabled={loadingSummary}
+                >
+                  {loadingSummary ? (
+                    <>🤖 Generating Summary...</>
+                  ) : showSummary ? (
+                    <>📝 Hide Summary</>
+                  ) : (
+                    <>🤖 View AI Summary</>
+                  )}
+                </button>
+              )}
             {isAuthenticated && (
               <button
                 className="btn-add-review"
@@ -384,6 +443,29 @@ const ProductDetailPage = () => {
               </button>
             )}
           </div>
+          </div>
+
+          {/* AI Summary Section */}
+          {showSummary && (
+            <div className="summary-container">
+              {loadingSummary ? (
+                <div className="summary-loading">
+                  <p>🤖 AI is analyzing reviews and generating a summary...</p>
+                </div>
+              ) : summary ? (
+                <div className={`summary-content ${summary.error ? 'summary-error' : ''}`}>
+                  <div className="summary-header">
+                    <span className="summary-icon">🤖</span>
+                    <h3>AI-Generated Summary</h3>
+                    {summary.commentCount && (
+                      <span className="summary-count">Based on {summary.commentCount} review(s)</span>
+                    )}
+                  </div>
+                  <p className="summary-text">{summary.summary}</p>
+                </div>
+              ) : null}
+            </div>
+          )}
 
           {/* Comment Form */}
           {showCommentForm && isAuthenticated && (

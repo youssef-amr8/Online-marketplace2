@@ -5,5 +5,6 @@ const auth = require('../middlewares/auth');
 
 router.post('/', auth, commentController.addComment);
 router.get('/item/:itemId', commentController.getCommentsByItemId);
+router.get('/item/:itemId/summary', commentController.getCommentsSummary);
 
 module.exports = router;

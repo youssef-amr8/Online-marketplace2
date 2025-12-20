@@ -1,0 +1,19 @@
+# Classical Extractive Summarization - BEST lightweight option
+# Uses TextRank algorithm to select most representative sentences
+
+# Primary: sumy (TextRank) - Currently active (spaCy has Python 3.14 compatibility issues)
+sumy>=0.11.0
+
+# NLTK (required by sumy)
+nltk>=3.8
+
+# Optional: spaCy (Industry-grade, optimized Cython)
+# NOTE: spaCy currently has compatibility issues with Python 3.14+
+# Will automatically fall back to sumy if spaCy fails
+# spacy>=3.7.0
+
+# Note: After installation, download NLTK data:
+# python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+#
+# If using spaCy (Python < 3.14), download English model:
+# python -m spacy download en_core_web_sm

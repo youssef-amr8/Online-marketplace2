@@ -25,6 +25,16 @@ const commentService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    // Get AI-generated summary of comments for an item
+    getCommentsSummary: async (itemId) => {
+        try {
+            const response = await api.get(`/comments/item/${itemId}/summary`);
+            return response.data.data;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

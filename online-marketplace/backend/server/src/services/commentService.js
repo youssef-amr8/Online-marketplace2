@@ -22,3 +22,13 @@ exports.getCommentsByItemId = async (itemId) => {
   return comments;
 };
 
+exports.getCommentsTextForSummarization = async (itemId) => {
+  const comments = await Comment.find({ itemId })
+    .select('text rating')
+    .sort({ createdAt: -1 });
+  return comments.map(c => ({
+    text: c.text,
+    rating: c.rating || null
+  }));
+};
+
