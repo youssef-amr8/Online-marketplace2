@@ -387,6 +387,56 @@
   color: white;
 }
 
+.group-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #D5D9D9;
+  border-radius: 8px;
+  color: #565959;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.group-toggle-btn:hover {
+  background: #F7F8F8;
+  border-color: #A0A0A0;
+}
+
+.group-toggle-btn.active {
+  background: #232F3E;
+  color: white;
+  border-color: #232F3E;
+}
+
+.category-group {
+  margin-bottom: 30px;
+}
+
+.category-group-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #232F3E;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #E0E0E0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-group-title span {
+  font-size: 14px;
+  font-weight: 400;
+  color: #565959;
+  background: #E0E0E0;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
 /* Data Table */
 .table-container {
   overflow-x: auto;

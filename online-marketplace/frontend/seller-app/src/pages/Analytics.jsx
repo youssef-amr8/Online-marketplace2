@@ -13,9 +13,8 @@ function Analytics() {
         totalSales: 0,
         totalRevenue: 0,
         averageOrder: 0,
-        conversionRate: 0,
-        pageViews: 0,
-        uniqueVisitors: 0,
+        completedOrders: 0,
+        returnRate: 0,
     });
     const [dailySales, setDailySales] = useState([]);
     const [topCategories, setTopCategories] = useState([]);
@@ -59,13 +58,17 @@ function Analytics() {
             const completedOrders = filteredOrders.filter(o => o.status === 'Delivered').length;
             const conversionRate = totalSales > 0 ? (completedOrders / totalSales) * 100 : 0;
 
+            // Calculate refund/return rate
+            // Assuming 'Cancelled' or 'Refunded' status counts as a return
+            const returnedOrders = filteredOrders.filter(o => o.status === 'Cancelled' || o.status === 'Refunded').length;
+            const returnRate = totalSales > 0 ? (returnedOrders / totalSales) * 100 : 0;
+
             setAnalytics({
                 totalSales,
                 totalRevenue,
                 averageOrder: averageOrder.toFixed(2),
-                conversionRate: conversionRate.toFixed(1),
-                pageViews: 0, // Not tracked yet
-                uniqueVisitors: 0, // Not tracked yet
+                completedOrders,
+                returnRate: returnRate.toFixed(1),
             });
 
             // Calculate daily sales for last 7 days
@@ -78,7 +81,13 @@ function Analytics() {
                 const nextDate = new Date(date);
                 nextDate.setDate(nextDate.getDate() + 1);
 
-                const dayOrders = filteredOrders.filter(order => {
+                const dayOrders = orders.filter(order => { // Use all orders for daily trend, or filtered? Usually trend is fixed range
+                    // Let's stick to the requested time range filtering logic for consistency, 
+                    // BUT usually daily charts show a fixed 7-day window irrespective of the "total" filter. 
+                    // The code below uses 'filteredOrders' which might be wrong if range is 'day'. 
+                    // Actually, listing logic (lines 71-91) used 'filteredOrders' but the loop is for 7 days.
+                    // If timeRange is 'day', filteredOrders is only TODAY. So chart only shows today.
+                    // If we want the chart to ALWAYS show last 7 days sales trend, we should use 'orders'.
                     const orderDate = new Date(order.createdAt);
                     return orderDate >= date && orderDate < nextDate;
                 });
@@ -240,14 +249,20 @@ function Analytics() {
                         </div>
                         <div className="metric-card">
                             <div className="metric-icon conversion">
-                                <i className="fas fa-percentage"></i>
+                                <i className="fas fa-check-circle"></i>
                             </div>
                             <div className="metric-data">
-                                <h3>{analytics.conversionRate}%</h3>
-                                <p>Conversion Rate</p>
+                                <h3>{analytics.completedOrders}</h3>
+                                <p>Completed Orders</p>
                             </div>
-                            <div className="metric-trend negative">
-                                <i className="fas fa-arrow-down"></i> 2%
+                        </div>
+                        <div className="metric-card">
+                            <div className="metric-icon" style={{ backgroundColor: '#FFEBEE', color: '#C7511F' }}>
+                                <i className="fas fa-undo"></i>
+                            </div>
+                            <div className="metric-data">
+                                <h3>{analytics.returnRate}%</h3>
+                                <p>Return Rate</p>
                             </div>
                         </div>
                     </div>
@@ -303,45 +318,7 @@ function Analytics() {
                         </div>
                     </div>
 
-                    {/* Traffic Stats */}
-                    <div className="traffic-row">
-                        <div className="traffic-card">
-                            <div className="traffic-icon">
-                                <i className="fas fa-eye"></i>
-                            </div>
-                            <div className="traffic-data">
-                                <h3>{analytics.pageViews.toLocaleString()}</h3>
-                                <p>Page Views</p>
-                            </div>
-                        </div>
-                        <div className="traffic-card">
-                            <div className="traffic-icon">
-                                <i className="fas fa-users"></i>
-                            </div>
-                            <div className="traffic-data">
-                                <h3>{analytics.uniqueVisitors.toLocaleString()}</h3>
-                                <p>Unique Visitors</p>
-                            </div>
-                        </div>
-                        <div className="traffic-card">
-                            <div className="traffic-icon">
-                                <i className="fas fa-clock"></i>
-                            </div>
-                            <div className="traffic-data">
-                                <h3>4:32</h3>
-                                <p>Avg. Session</p>
-                            </div>
-                        </div>
-                        <div className="traffic-card">
-                            <div className="traffic-icon">
-                                <i className="fas fa-redo"></i>
-                            </div>
-                            <div className="traffic-data">
-                                <h3>42%</h3>
-                                <p>Return Rate</p>
-                            </div>
-                        </div>
-                    </div>
+
 
                     {/* Recent Transactions */}
                     <div className="transactions-section">

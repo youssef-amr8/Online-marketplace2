@@ -27,6 +27,7 @@ const ProductDetailPage = () => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [sellerFlagCount, setSellerFlagCount] = useState(0);
+  const [sellerFlags, setSellerFlags] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -49,6 +50,7 @@ const ProductDetailPage = () => {
               if (sellerId) {
                 const flagData = await flagService.getFlagCount(sellerId);
                 setSellerFlagCount(flagData.unresolvedFlagCount || 0);
+                setSellerFlags(flagData.flags || []);
               }
             } catch (flagError) {
               console.error('Error fetching seller flags:', flagError);
@@ -264,19 +266,30 @@ const ProductDetailPage = () => {
           border: '1px solid #ffc107',
           borderRadius: '8px',
           padding: '12px 20px',
-          marginBottom: '15px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
+          marginBottom: '15px'
         }}>
-          <span style={{ fontSize: '24px' }}>⚠️</span>
-          <div>
-            <strong style={{ color: '#856404' }}>Seller Warning</strong>
-            <p style={{ margin: '5px 0 0', color: '#856404', fontSize: '14px' }}>
-              This seller has {sellerFlagCount} unresolved flag{sellerFlagCount > 1 ? 's' : ''} reported by other buyers.
-              Please review carefully before purchasing.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '24px' }}>⚠️</span>
+            <div>
+              <strong style={{ color: '#856404' }}>Seller Warning</strong>
+              <p style={{ margin: '0', color: '#856404', fontSize: '14px' }}>
+                This seller has {sellerFlagCount} unresolved flag{sellerFlagCount > 1 ? 's' : ''} reported by other buyers.
+              </p>
+            </div>
           </div>
+
+          {sellerFlags && sellerFlags.length > 0 && (
+            <div style={{ marginLeft: '34px', marginTop: '8px' }}>
+              <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#856404', marginBottom: '4px' }}>Reported Issues:</p>
+              <ul style={{ margin: 0, paddingLeft: '20px', color: '#856404', fontSize: '13px' }}>
+                {sellerFlags.map((flag, index) => (
+                  <li key={flag.id || index} style={{ marginBottom: '4px' }}>
+                    <strong>{new Date(flag.date).toLocaleDateString()}:</strong> {flag.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -469,15 +482,15 @@ const ProductDetailPage = () => {
                   )}
                 </button>
               )}
-            {isAuthenticated && (
-              <button
-                className="btn-add-review"
-                onClick={() => setShowCommentForm(!showCommentForm)}
-              >
-                {showCommentForm ? "Cancel" : "Write a Review"}
-              </button>
-            )}
-          </div>
+              {isAuthenticated && (
+                <button
+                  className="btn-add-review"
+                  onClick={() => setShowCommentForm(!showCommentForm)}
+                >
+                  {showCommentForm ? "Cancel" : "Write a Review"}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* AI Summary Section */}

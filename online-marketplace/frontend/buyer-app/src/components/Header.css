@@ -278,6 +278,137 @@
   line-height: 1;
 }
 
+/* Location Selector */
+.header-location {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  height: 36px;
+  justify-content: center;
+  margin-right: 8px;
+  min-width: 80px;
+}
+
+.header-location:hover {
+  border-color: white;
+}
+
+.location-top {
+  font-size: 10px;
+  color: #ccc;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.location-bottom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.location-icon {
+  width: 14px;
+  height: 14px;
+  color: white;
+}
+
+/* Location Modal */
+.location-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.location-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.location-modal-header {
+  background-color: #f0f2f2;
+  padding: 16px 24px;
+  border-bottom: 1px solid #d5d9d9;
+}
+
+.location-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #0F1111;
+}
+
+.location-modal-body {
+  padding: 24px;
+}
+
+.location-modal-body p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #0F1111;
+}
+
+.location-input-group {
+  margin-bottom: 16px;
+}
+
+.location-input-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #888C8C;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 1px 2px rgba(15, 17, 17, 0.15) inset;
+}
+
+.location-modal-footer {
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-secondary {
+  padding: 6px 14px;
+  border: 1px solid #D5D9D9;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #FFD814;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #F7CA00;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .header {

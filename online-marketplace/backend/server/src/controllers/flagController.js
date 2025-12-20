@@ -136,12 +136,24 @@ exports.getFlagCount = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const count = await Flag.countDocuments({
+    const flags = await Flag.find({
       reportedUserId: userId,
       resolved: false
-    });
+    })
+      .select('reason createdAt')
+      .sort({ createdAt: -1 });
 
-    success(res, { userId, unresolvedFlagCount: count });
+    const count = flags.length;
+
+    success(res, {
+      userId,
+      unresolvedFlagCount: count,
+      flags: flags.map(f => ({
+        id: f._id,
+        reason: f.reason,
+        date: f.createdAt
+      }))
+    });
   } catch (err) {
     console.error('Error getting flag count:', err);
     error(res, err.message, 400);

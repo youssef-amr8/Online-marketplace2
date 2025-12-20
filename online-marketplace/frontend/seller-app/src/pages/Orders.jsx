@@ -24,6 +24,8 @@ function Orders() {
   const [flagReason, setFlagReason] = useState("");
   const [submittingFlag, setSubmittingFlag] = useState(false);
   const [buyerFlagCounts, setBuyerFlagCounts] = useState({});
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedBuyerFlags, setSelectedBuyerFlags] = useState({ name: '', flags: [] });
 
   useEffect(() => {
     fetchOrders();
@@ -72,6 +74,7 @@ function Orders() {
         .filter(o => o.status === 'Pending')
         .slice(0, 3)
         .map(mapOrderToDisplay);
+
       setPendingOrders(pending);
 
       // Get recent completed (limit 3)
@@ -83,6 +86,7 @@ function Orders() {
 
       // Fetch buyer flag counts for pending orders
       fetchBuyerFlagCounts(orders.filter(o => o.status === 'Pending'));
+
 
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -100,13 +104,29 @@ function Orders() {
       image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
     })) || [];
 
+    // Get buyerId - API returns buyerId as populated object {_id, name, email}
+    // We need to extract the _id for flagging
+    const rawBuyerId = order.buyerId;
+    let buyerIdString = null;
+    let buyerName = 'Unknown (Deleted)';
+
+    if (rawBuyerId) {
+      if (typeof rawBuyerId === 'object' && rawBuyerId._id) {
+        buyerIdString = String(rawBuyerId._id);
+        buyerName = rawBuyerId.name || 'Customer';
+      } else if (typeof rawBuyerId === 'string') {
+        buyerIdString = rawBuyerId;
+        buyerName = 'Customer';
+      }
+    }
+
     return {
       id: order._id || order.id,
       items: allItems,
       product: allItems.map(i => i.title).join(', ') || 'Product',
       totalQty: allItems.reduce((sum, i) => sum + i.quantity, 0),
-      buyer: order.buyerId?.name || 'Customer',
-      buyerId: order.buyerId?._id || order.buyerId,
+      buyer: buyerName,
+      buyerId: buyerIdString,
       amount: order.totalPrice || 0,
       date: new Date(order.createdAt).toLocaleDateString(),
       rawStatus: order.status,
@@ -114,22 +134,32 @@ function Orders() {
     };
   };
 
+
   // Fetch flag counts for buyers in orders
   const fetchBuyerFlagCounts = async (orders) => {
-    const counts = {};
+    const flagsMap = {};
     for (const order of orders) {
-      if (order.buyerId?._id) {
+      // Normalize buyerId
+      let buyerId = order.buyerId;
+      if (typeof buyerId === 'object' && buyerId !== null) {
+        buyerId = buyerId._id || buyerId.id;
+      }
+
+      if (buyerId && !flagsMap[buyerId]) {
         try {
-          const data = await getFlagCount(order.buyerId._id);
+          const data = await getFlagCount(buyerId);
           if (data.unresolvedFlagCount > 0) {
-            counts[order.buyerId._id] = data.unresolvedFlagCount;
+            flagsMap[buyerId] = {
+              count: data.unresolvedFlagCount,
+              details: data.flags || []
+            };
           }
         } catch (error) {
           // Silently ignore individual errors
         }
       }
     }
-    setBuyerFlagCounts(counts);
+    setBuyerFlagCounts(flagsMap);
   };
 
   const handleFlagBuyer = async () => {
@@ -145,7 +175,26 @@ function Orders() {
 
     setSubmittingFlag(true);
     try {
-      await flagBuyer(selectedOrder.buyerId, flagReason, selectedOrder.id);
+      // buyerId is already a string from mapOrderToDisplay
+      const buyerId = selectedOrder.buyerId;
+      await flagBuyer(buyerId, flagReason, selectedOrder.id);
+
+      // Refresh flag counts for this buyer
+      try {
+        const data = await getFlagCount(buyerId);
+        if (data.unresolvedFlagCount > 0) {
+          setBuyerFlagCounts(prev => ({
+            ...prev,
+            [buyerId]: {
+              count: data.unresolvedFlagCount,
+              details: data.flags || []
+            }
+          }));
+        }
+      } catch (err) {
+        console.log("Error refreshing flags:", err);
+      }
+
       alert("Thank you for reporting this issue. We will review it shortly.");
       setShowFlagModal(false);
       setFlagReason("");
@@ -162,6 +211,15 @@ function Orders() {
   const openFlagModal = (order) => {
     setSelectedOrder(order);
     setShowFlagModal(true);
+  };
+
+  const handleViewFlags = (buyerName, flagsData) => {
+    if (!flagsData || !flagsData.details) return;
+    setSelectedBuyerFlags({
+      name: buyerName,
+      flags: flagsData.details
+    });
+    setShowDetailsModal(true);
   };
 
   return (
@@ -275,23 +333,39 @@ function Orders() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {order.buyer}
-                        {buyerFlagCounts[order.buyerId] > 0 && (
-                          <span
-                            title={`⚠️ This buyer has ${buyerFlagCounts[order.buyerId]} flag(s) from other sellers`}
-                            style={{
-                              color: '#dc3545',
-                              fontSize: '14px',
-                              cursor: 'help'
-                            }}
-                          >
-                            🚩{buyerFlagCounts[order.buyerId]}
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
-                    <td><span className="status-badge pending">{order.status}</span></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span className="status-badge pending">{order.status}</span>
+                        {buyerFlagCounts[order.buyerId] && (
+                          <span
+                            onClick={() => handleViewFlags(order.buyer, buyerFlagCounts[order.buyerId])}
+                            title="Click to view flag details - Review before shipping!"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              backgroundColor: '#fff3cd',
+                              border: '1px solid #ffc107',
+                              color: '#856404',
+                              padding: '4px 10px',
+                              borderRadius: '16px',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              fontWeight: '600',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                            }}
+                          >
+                            <span style={{ fontSize: '14px' }}>⚠️</span>
+                            <span>Buyer Flags: {buyerFlagCounts[order.buyerId].count}</span>
+                            <span style={{ fontSize: '10px', opacity: 0.8 }}>(click to view)</span>
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         {order.rawStatus === 'Pending' ? (
@@ -465,6 +539,42 @@ function Orders() {
           <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
             Your report will be reviewed by our team. We take all reports seriously.
           </p>
+        </div>
+      </Modal>
+
+      {/* View Flag Details Modal */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title={`Flags for ${selectedBuyerFlags.name}`}
+        actions={
+          <button className="btn-secondary" onClick={() => setShowDetailsModal(false)}>
+            Close
+          </button>
+        }
+      >
+        <div style={{ padding: '20px' }}>
+          {selectedBuyerFlags.flags && selectedBuyerFlags.flags.length > 0 ? (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {selectedBuyerFlags.flags.map((flag, index) => (
+                <div key={index} style={{
+                  padding: '12px',
+                  borderBottom: '1px solid #eee',
+                  marginBottom: '10px',
+                  backgroundColor: '#fff9fa',
+                  borderRadius: '6px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#dc3545', fontSize: '13px' }}>Reported Issue</span>
+                    <span style={{ fontSize: '12px', color: '#666' }}>{new Date(flag.date).toLocaleDateString()}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '14px' }}>{flag.reason}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No details available.</p>
+          )}
         </div>
       </Modal>
     </div>

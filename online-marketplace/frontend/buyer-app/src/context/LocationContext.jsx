@@ -22,6 +22,8 @@ export const LocationProvider = ({ children }) => {
         return saved || '';
     });
 
+    const [isLocationPromptOpen, setIsLocationPromptOpen] = useState(false);
+
     // Persist to localStorage whenever location changes
     useEffect(() => {
         if (selectedLocation) {
@@ -49,6 +51,9 @@ export const LocationProvider = ({ children }) => {
         setSelectedCity('');
     };
 
+    const openLocationPrompt = () => setIsLocationPromptOpen(true);
+    const closeLocationPrompt = () => setIsLocationPromptOpen(false);
+
     return (
         <LocationContext.Provider
             value={{
@@ -56,7 +61,10 @@ export const LocationProvider = ({ children }) => {
                 selectedCity,
                 updateLocation,
                 clearLocation,
-                setSelectedCity
+                setSelectedCity,
+                isLocationPromptOpen,
+                openLocationPrompt,
+                closeLocationPrompt
             }}
         >
             {children}

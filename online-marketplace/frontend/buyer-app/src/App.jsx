@@ -32,35 +32,41 @@ export const NavigationContext = createContext();
 
 function AppContent() {
   const location = useLocation();
-  const { selectedLocation, selectedCity } = useLocationContext();
+  const {
+    selectedLocation,
+    selectedCity,
+    isLocationPromptOpen,
+    openLocationPrompt,
+    closeLocationPrompt
+  } = useLocationContext();
+
   const isLoginPage = location.pathname === '/login';
   const isMarketPlacePage = location.pathname === '/marketplace';
   const [showNavigation, setShowNavigation] = React.useState(false);
-  const [showLocationPrompt, setShowLocationPrompt] = React.useState(false);
 
   // Show location prompt on first load if no location is set
   React.useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('location_prompt_seen');
     if (!hasSeenPrompt && !selectedLocation && !selectedCity && !isLoginPage) {
-      setShowLocationPrompt(true);
+      openLocationPrompt();
     }
-  }, [selectedLocation, selectedCity, isLoginPage]);
+  }, [selectedLocation, selectedCity, isLoginPage, openLocationPrompt]);
 
 
   // Hide navigation on login and marketplace pages (unless toggled on)
   const shouldShowNav = !isLoginPage && (!isMarketPlacePage || showNavigation);
 
   const handleLocationPromptClose = () => {
-    setShowLocationPrompt(false);
+    closeLocationPrompt();
     localStorage.setItem('location_prompt_seen', 'true');
   };
 
   return (
     <NavigationContext.Provider value={{ showNavigation, setShowNavigation }}>
       <div className="App">
-        {showLocationPrompt && (
+        {isLocationPromptOpen && (
           <LocationPrompt
-            isOpen={showLocationPrompt}
+            isOpen={isLocationPromptOpen}
             onClose={handleLocationPromptClose}
           />
         )}

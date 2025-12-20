@@ -20,7 +20,7 @@ const MarketPlace = () => {
   const navigate = useNavigate();
   const { showNavigation, setShowNavigation } = useContext(NavigationContext);
   const { products: productsByCategory, loading: productsLoading, fetchProducts } = useProducts();
-  const { selectedLocation, selectedCity } = useLocation();
+  const { selectedLocation, selectedCity, openLocationPrompt } = useLocation();
   const [filteredProducts, setFilteredProducts] = useState([]);
 
 
@@ -234,10 +234,7 @@ const MarketPlace = () => {
             {selectedCity && (
               <button
                 className="change-location-btn"
-                onClick={() => {
-                  localStorage.removeItem('location_prompt_seen');
-                  window.location.reload();
-                }}
+                onClick={openLocationPrompt}
                 style={{
                   padding: '8px 16px',
                   background: 'white',

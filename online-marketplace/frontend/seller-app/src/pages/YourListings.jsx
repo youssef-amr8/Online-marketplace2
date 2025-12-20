@@ -9,6 +9,7 @@ function YourListings() {
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
+  const [groupByCategory, setGroupByCategory] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -131,6 +132,13 @@ function YourListings() {
     return matchesFilter && matchesSearch;
   });
 
+  // Group products by category
+  const categories = [...new Set(filteredProducts.map(p => p.category))].sort();
+  const productsByCategory = categories.reduce((acc, category) => {
+    acc[category] = filteredProducts.filter(p => p.category === category);
+    return acc;
+  }, {});
+
   return (
     <div className="seller-app">
       <Sidebar />
@@ -207,6 +215,15 @@ function YourListings() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+
+              <button
+                className={`group-toggle-btn ${groupByCategory ? 'active' : ''}`}
+                onClick={() => setGroupByCategory(!groupByCategory)}
+                title="Group by Category"
+              >
+                <i className="fas fa-layer-group"></i> Group by Category
+              </button>
+
               <div className="view-toggle">
                 <button
                   className={viewMode === "grid" ? "active" : ""}
@@ -240,6 +257,98 @@ function YourListings() {
               <Link to="/add-product" className="btn-primary">
                 <i className="fas fa-plus"></i> Add Your First Product
               </Link>
+            </div>
+          ) : groupByCategory ? (
+            <div className="grouped-products">
+              {Object.keys(productsByCategory).map(category => (
+                <div key={category} className="category-group">
+                  <h3 className="category-group-title">
+                    {category}
+                    <span>{productsByCategory[category].length}</span>
+                  </h3>
+
+                  {viewMode === "grid" ? (
+                    <div className="product-grid-enhanced">
+                      {productsByCategory[category].map((product) => (
+                        <div key={product.id} className={`product-card-enhanced ${product.status}`}>
+                          {/* Product Card Content */}
+                          <div className="product-image-container">
+                            <img src={product.image} alt={product.name} />
+                            {product.status === "low_stock" && <span className="stock-badge warning">Low Stock</span>}
+                            {product.status === "out_of_stock" && <span className="stock-badge danger">Out of Stock</span>}
+                          </div>
+                          <div className="product-content">
+                            <h3 className="product-name">{product.name}</h3>
+                            <p className="product-price">${product.price.toFixed(2)}</p>
+                            <div className="product-stats">
+                              <span><i className="fas fa-box"></i> {product.stock}</span>
+                              <span><i className="fas fa-star" style={{ color: '#ffa41c' }}></i> {product.rating.toFixed(1)} ({product.reviews})</span>
+                            </div>
+                            <div className="product-actions">
+                              <button className="btn-comments" onClick={() => handleViewComments(product)}>
+                                <i className="fas fa-comments"></i> Comments
+                              </button>
+                              <button className="btn-edit" onClick={() => handleEdit(product)}><i className="fas fa-edit"></i> Edit</button>
+                              <button className="btn-delete" onClick={() => handleDelete(product.id)}>
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Sales</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {productsByCategory[category].map((product) => (
+                            <tr key={product.id}>
+                              <td>
+                                <div className="product-cell-with-img">
+                                  <img src={product.image} alt={product.name} />
+                                  <span>{product.name}</span>
+                                </div>
+                              </td>
+                              <td className="amount">${product.price.toFixed(2)}</td>
+                              <td>{product.stock}</td>
+                              <td>
+                                <div>{product.sales} Sales</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>
+                                  {product.reviews} Reviews ({product.rating.toFixed(1)} <span style={{ color: '#ffa41c' }}>★</span>)
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`status-badge ${product.status === "active" ? "completed" : product.status === "low_stock" ? "pending" : "cancelled"}`}>
+                                  {product.status.replace("_", " ")}
+                                </span>
+                              </td>
+                              <td>
+                                <button className="action-btn-small comments" onClick={() => handleViewComments(product)} title="View Comments">
+                                  <i className="fas fa-comments"></i>
+                                </button>
+                                <button className="action-btn-small edit" onClick={() => handleEdit(product)} title="Edit Product"><i className="fas fa-edit"></i></button>
+                                <button className="action-btn-small delete" onClick={() => handleDelete(product.id)}>
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           ) : viewMode === "grid" ? (
             <div className="product-grid-enhanced">
