@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductContext";
 import commentService from "../services/commentService";
+import flagService from "../services/flagService";
 import "./ProductDetailPage.css";
 
 const ProductDetailPage = () => {
@@ -25,6 +26,7 @@ const ProductDetailPage = () => {
   const [commentRating, setCommentRating] = useState(5);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [sellerFlagCount, setSellerFlagCount] = useState(0);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -34,6 +36,21 @@ const ProductDetailPage = () => {
         if (fetchedProduct) {
           setProduct(fetchedProduct);
           fetchComments(productId); // Use productId directly (MongoDB _id)
+
+          // Fetch seller flag count if sellerId is available
+          if (fetchedProduct.sellerId) {
+            try {
+              const sellerId = typeof fetchedProduct.sellerId === 'object'
+                ? fetchedProduct.sellerId._id || fetchedProduct.sellerId.id
+                : fetchedProduct.sellerId;
+              if (sellerId) {
+                const flagData = await flagService.getFlagCount(sellerId);
+                setSellerFlagCount(flagData.unresolvedFlagCount || 0);
+              }
+            } catch (flagError) {
+              console.error('Error fetching seller flags:', flagError);
+            }
+          }
         } else {
           // Product not found - show error but don't redirect immediately
           console.warn('Product not found:', productId);
@@ -196,6 +213,29 @@ const ProductDetailPage = () => {
         )}
         <span>{product.name}</span>
       </div>
+
+      {/* Seller Flag Warning */}
+      {sellerFlagCount > 0 && (
+        <div style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          padding: '12px 20px',
+          marginBottom: '15px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span style={{ fontSize: '24px' }}>⚠️</span>
+          <div>
+            <strong style={{ color: '#856404' }}>Seller Warning</strong>
+            <p style={{ margin: '5px 0 0', color: '#856404', fontSize: '14px' }}>
+              This seller has {sellerFlagCount} unresolved flag{sellerFlagCount > 1 ? 's' : ''} reported by other buyers.
+              Please review carefully before purchasing.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Success Message */}
       {showAddedMessage && (

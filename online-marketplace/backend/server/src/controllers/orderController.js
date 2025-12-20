@@ -8,8 +8,8 @@ exports.createOrder = async (req, res) => {
     if (!buyerId) {
       return error(res, 'Buyer ID not found in token', 401);
     }
-    const { items } = req.body;
-    const order = await orderService.createOrder({ buyerId, items });
+    const { items, deliveryFee } = req.body;
+    const order = await orderService.createOrder({ buyerId, items, deliveryFee });
     success(res, order, 201);
   } catch (err) { error(res, err.message, 400); }
 };

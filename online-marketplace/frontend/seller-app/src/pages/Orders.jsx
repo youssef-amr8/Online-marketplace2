@@ -3,7 +3,7 @@ import Modal from "../components/Modal";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getSellerOrders, updateOrderStatus } from "../services/orderService";
-import { flagBuyer } from "../services/flagService";
+import { flagBuyer, getFlagCount } from "../services/flagService";
 import "./PageStyles.css";
 
 function Orders() {
@@ -23,6 +23,7 @@ function Orders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [flagReason, setFlagReason] = useState("");
   const [submittingFlag, setSubmittingFlag] = useState(false);
+  const [buyerFlagCounts, setBuyerFlagCounts] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -80,6 +81,9 @@ function Orders() {
         .map(mapOrderToDisplay);
       setRecentCompleted(completed);
 
+      // Fetch buyer flag counts for pending orders
+      fetchBuyerFlagCounts(orders.filter(o => o.status === 'Pending'));
+
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -108,6 +112,24 @@ function Orders() {
       rawStatus: order.status,
       status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
     };
+  };
+
+  // Fetch flag counts for buyers in orders
+  const fetchBuyerFlagCounts = async (orders) => {
+    const counts = {};
+    for (const order of orders) {
+      if (order.buyerId?._id) {
+        try {
+          const data = await getFlagCount(order.buyerId._id);
+          if (data.unresolvedFlagCount > 0) {
+            counts[order.buyerId._id] = data.unresolvedFlagCount;
+          }
+        } catch (error) {
+          // Silently ignore individual errors
+        }
+      }
+    }
+    setBuyerFlagCounts(counts);
   };
 
   const handleFlagBuyer = async () => {
@@ -250,7 +272,23 @@ function Orders() {
                         )}
                       </div>
                     </td>
-                    <td>{order.buyer}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {order.buyer}
+                        {buyerFlagCounts[order.buyerId] > 0 && (
+                          <span
+                            title={`⚠️ This buyer has ${buyerFlagCounts[order.buyerId]} flag(s) from other sellers`}
+                            style={{
+                              color: '#dc3545',
+                              fontSize: '14px',
+                              cursor: 'help'
+                            }}
+                          >
+                            🚩{buyerFlagCounts[order.buyerId]}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
                     <td><span className="status-badge pending">{order.status}</span></td>

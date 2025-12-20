@@ -3,7 +3,7 @@ const Item = require('../models/item');
 const Buyer = require('../models/buyer');
 const Seller = require('../models/seller');
 
-exports.createOrder = async ({ buyerId, items }) => {
+exports.createOrder = async ({ buyerId, items, deliveryFee }) => {
   // items: [{ itemId, quantity }]
   // fetch items and compute total
   const itemDocs = await Item.find({ _id: { $in: items.map(i => i.itemId) } });
@@ -21,10 +21,21 @@ exports.createOrder = async ({ buyerId, items }) => {
     await itemDoc.save();
   }
 
-  const totalPrice = itemsSnapshot.reduce((s, it) => s + it.quantity * it.price, 0);
+  let totalPrice = itemsSnapshot.reduce((s, it) => s + it.quantity * it.price, 0);
+
+  // Add delivery fee if present
+  const finalDeliveryFee = deliveryFee || 0;
+  totalPrice += finalDeliveryFee;
+
   // sellerId: for simplicity assume one seller; real-case you might split per seller
   const sellerId = itemDocs[0].sellerId;
-  const order = await Order.create({ buyerId, sellerId, items: itemsSnapshot, totalPrice });
+  const order = await Order.create({
+    buyerId,
+    sellerId,
+    items: itemsSnapshot,
+    totalPrice,
+    deliveryFee: finalDeliveryFee
+  });
   return order;
 };
 
@@ -95,7 +106,7 @@ exports.getBuyerOrders = async (buyerId) => {
 
 exports.getSellerOrders = async (sellerId) => {
   const orders = await Order.find({ sellerId })
-    .populate('buyerId', 'name email')
+    .populate('buyerId', '_id name email')
     .populate('items.itemId', 'title images price')
     .sort({ createdAt: -1 });
   return orders;

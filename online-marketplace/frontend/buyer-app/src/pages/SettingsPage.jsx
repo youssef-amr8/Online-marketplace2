@@ -28,6 +28,23 @@ const SettingsPage = () => {
     currency: "EGP - Egyptian Pound"
   });
 
+  // Delivery City State
+  const [deliveryCity, setDeliveryCity] = useState("Cairo");
+  const [isSavingCity, setIsSavingCity] = useState(false);
+
+  // Egyptian Cities List
+  const egyptianCities = [
+    "Cairo", "Alexandria", "Giza", "Shubra El Kheima", "Port Said",
+    "Suez", "Luxor", "Al Mahallah Al Kubra", "Mansoura", "Tanta",
+    "Asyut", "Ismailia", "Faiyum", "Zagazig", "Aswan", "Damietta",
+    "Damanhur", "El Minya", "Beni Suef", "Qena", "Sohag", "Hurghada",
+    "6th of October City", "New Cairo", "Maadi", "Nasr City", "Heliopolis",
+    "Madinaty", "El Shorouk", "El Obour", "10th of Ramadan City"
+  ];
+
+  // API Base URL
+  const BASE_URL = import.meta.env?.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
     if (storedUser.email) {
@@ -37,6 +54,8 @@ const SettingsPage = () => {
         memberSince: "January 2024" // Mock date
       });
       setFormData({ name: storedUser.name || "", email: storedUser.email });
+      // Load city from stored user or default to Cairo
+      setDeliveryCity(storedUser.city || "Cairo");
     }
 
     // Load other prefs
@@ -127,6 +146,36 @@ const SettingsPage = () => {
     localStorage.setItem('sitePrefs', JSON.stringify(sitePrefs));
     alert("Preferences updated.");
     setActiveModal(null);
+  };
+
+  // Save city to backend and localStorage
+  const handleSaveCity = async (newCity) => {
+    setIsSavingCity(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await fetch(`${BASE_URL}/api/auth/update/buyer`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ city: newCity })
+        });
+        if (!response.ok) {
+          console.error('Failed to save city to backend');
+        }
+      }
+      // Always save to localStorage
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      storedUser.city = newCity;
+      localStorage.setItem('user', JSON.stringify(storedUser));
+      setDeliveryCity(newCity);
+    } catch (error) {
+      console.error('Error saving city:', error);
+    } finally {
+      setIsSavingCity(false);
+    }
   };
 
   // --- Render Modals ---
@@ -326,6 +375,31 @@ const SettingsPage = () => {
                   </div>
                 </>
               )}
+            </div>
+
+            <div className="settings-section">
+              <h3>Delivery Location</h3>
+              <div className="settings-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                <span className="settings-label">
+                  <span className="settings-icon">📍</span>
+                  Your City
+                </span>
+                <p style={{ fontSize: '13px', color: '#666', margin: '0' }}>
+                  Products will be filtered to show only items that can be delivered to your city.
+                </p>
+                <select
+                  className="settings-input"
+                  value={deliveryCity}
+                  onChange={(e) => handleSaveCity(e.target.value)}
+                  disabled={isSavingCity}
+                  style={{ width: '100%', maxWidth: '300px', padding: '10px', fontSize: '14px' }}
+                >
+                  {egyptianCities.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+                {isSavingCity && <span style={{ fontSize: '12px', color: '#007185' }}>Saving...</span>}
+              </div>
             </div>
 
             <div className="settings-section">

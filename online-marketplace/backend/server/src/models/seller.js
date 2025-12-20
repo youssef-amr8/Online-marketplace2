@@ -4,7 +4,18 @@ const sellerProfileSchema = new mongoose.Schema({
     storeName: String,
     storeDescription: String,
     taxId: String,
-    serviceAreas: [String] // optional: city/zip codes
+    // Serviceability & Location
+    location: {
+        type: { type: String, enum: ['Point'], default: 'Point' },
+        coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
+        address: String
+    },
+    deliverySettings: {
+        maxDeliveryRange: { type: Number, default: 0 }, // in km (deprecated or secondary)
+        serviceableCities: { type: [String], default: [] },
+        baseDeliveryFee: { type: Number, default: 0 },
+        pricePerKm: { type: Number, default: 0 }
+    }
 }, { _id: false });
 
 const sellerSchema = new mongoose.Schema({

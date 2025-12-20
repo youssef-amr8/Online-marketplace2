@@ -159,6 +159,34 @@ const updateSeller = async (req, res) => {
     if (storeName) user.sellerProfile.storeName = storeName;
     if (storeDescription) user.sellerProfile.storeDescription = storeDescription;
 
+    // Handle Serviceability updates
+    const { location, deliverySettings } = req.body;
+    if (location) {
+      // Ensure structure: { type: 'Point', coordinates: [lng, lat], address: '...' }
+      if (!user.sellerProfile.location) {
+        user.sellerProfile.location = {};
+      }
+      user.sellerProfile.location = {
+        type: 'Point',
+        coordinates: location.coordinates || [0, 0],
+        address: location.address || ''
+      };
+    }
+    if (deliverySettings) {
+      if (!user.sellerProfile.deliverySettings) {
+        user.sellerProfile.deliverySettings = {};
+      }
+      user.sellerProfile.deliverySettings = {
+        maxDeliveryRange: deliverySettings.maxDeliveryRange !== undefined ? deliverySettings.maxDeliveryRange : 0,
+        serviceableCities: deliverySettings.serviceableCities || [],
+        baseDeliveryFee: deliverySettings.baseDeliveryFee !== undefined ? deliverySettings.baseDeliveryFee : 0,
+        pricePerKm: deliverySettings.pricePerKm !== undefined ? deliverySettings.pricePerKm : 0
+      };
+    }
+
+    // Mark the sellerProfile as modified to ensure Mongoose saves it
+    user.markModified('sellerProfile');
+
     await user.save();
 
     res.status(200).json({
@@ -172,10 +200,71 @@ const updateSeller = async (req, res) => {
           role: user.role,
           phone: user.phone,
           storeName: user.sellerProfile?.storeName,
-          storeDescription: user.sellerProfile?.storeDescription
+          storeDescription: user.sellerProfile?.storeDescription,
+          location: user.sellerProfile?.location,
+          deliverySettings: user.sellerProfile?.deliverySettings
         }
       }
     });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Update failed', error: err.message });
+  }
+};
+
+// Update Buyer
+const updateBuyer = async (req, res) => {
+  try {
+    const { name, city, currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await Buyer.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Update password if provided
+    if (currentPassword && newPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isMatch) return res.status(400).json({ message: 'Incorrect current password' });
+
+      const salt = await bcrypt.genSalt(10);
+      user.passwordHash = await bcrypt.hash(newPassword, salt);
+    }
+
+    // Update profile fields
+    if (name) user.name = name;
+
+    // Ensure buyerProfile exists
+    if (!user.buyerProfile) {
+      user.buyerProfile = { defaultLocation: {} };
+    }
+    if (!user.buyerProfile.defaultLocation) {
+      user.buyerProfile.defaultLocation = {};
+    }
+
+    // Update city
+    if (city !== undefined) {
+      user.buyerProfile.defaultLocation.city = city;
+    }
+
+    // Mark the buyerProfile as modified to ensure Mongoose saves it
+    user.markModified('buyerProfile');
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          city: user.buyerProfile?.defaultLocation?.city
+        }
+      }
+    });
+
   } catch (err) {
     res.status(500).json({ message: 'Update failed', error: err.message });
   }
@@ -187,5 +276,6 @@ module.exports = {
   loginBuyer,
   loginSeller,
   logout,
-  updateSeller
+  updateSeller,
+  updateBuyer
 };
