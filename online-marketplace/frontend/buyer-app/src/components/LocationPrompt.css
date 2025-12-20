@@ -1,0 +1,269 @@
+/* LocationPrompt.css */
+.location-prompt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.location-prompt-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.location-prompt-header {
+    padding: 25px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+}
+
+.location-prompt-header h2 {
+    margin: 0 0 8px 0;
+    color: #232F3E;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.location-prompt-header h2 i {
+    color: #FF9900;
+}
+
+.location-prompt-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.location-prompt-body {
+    padding: 25px;
+}
+
+/* Location Options */
+.location-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.location-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #D5D9D9;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.location-option-btn:hover {
+    border-color: #FF9900;
+    background: #FFF8F0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 153, 0, 0.2);
+}
+
+.location-option-btn i {
+    font-size: 32px;
+    color: #FF9900;
+    margin-bottom: 10px;
+}
+
+.location-option-btn span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #232F3E;
+    margin-bottom: 5px;
+}
+
+.location-option-btn small {
+    font-size: 13px;
+    color: #666;
+}
+
+.skip-btn {
+    margin-top: 10px;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    color: #007185;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.skip-btn:hover {
+    color: #FF9900;
+}
+
+/* GPS Loading */
+.gps-loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.gps-loading i {
+    font-size: 48px;
+    color: #FF9900;
+    margin-bottom: 15px;
+}
+
+.gps-loading p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.error-text {
+    color: #C7511F;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+/* Manual Selection */
+.manual-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.manual-selection label {
+    font-weight: 600;
+    color: #232F3E;
+    font-size: 14px;
+}
+
+.city-dropdown {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #888C8C;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.city-dropdown:focus {
+    outline: none;
+    border-color: #007185;
+    box-shadow: 0 0 0 3px rgba(0, 113, 133, 0.1);
+}
+
+.manual-actions,
+.map-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.back-btn {
+    flex: 1;
+    padding: 12px;
+    background: white;
+    border: 1px solid #D5D9D9;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #F7F8F8;
+}
+
+.confirm-btn {
+    flex: 2;
+    padding: 12px;
+    background: linear-gradient(135deg, #FFD814 0%, #F7CA00 100%);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #0F1111;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 216, 20, 0.3);
+}
+
+.confirm-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 216, 20, 0.4);
+}
+
+/* Map Selection */
+.map-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.map-container {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #D5D9D9;
+}
+
+.location-confirmation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: #E8F5E9;
+    border-radius: 6px;
+    color: #067D62;
+    font-size: 14px;
+}
+
+.location-confirmation i {
+    color: #067D62;
+}
+
+.city-select-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.city-select-wrapper label {
+    font-weight: 600;
+    color: #232F3E;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .location-prompt-modal {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+
+    .location-prompt-header h2 {
+        font-size: 20px;
+    }
+
+    .location-option-btn i {
+        font-size: 28px;
+    }
+
+    .map-container {
+        height: 250px !important;
+    }
+}

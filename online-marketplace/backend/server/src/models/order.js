@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema({
   sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Seller', required: true, index: true },
   items: [orderItemSchema],
   totalPrice: { type: Number, required: true },
+  deliveryFee: { type: Number, default: 0 },
   status: { type: String, enum: ['Pending', 'Accepted', 'Shipped', 'Delivered', 'Cancelled'], default: 'Pending', index: true },
   flags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Flag' }],
   notes: String

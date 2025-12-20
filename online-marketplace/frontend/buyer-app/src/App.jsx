@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } f
 import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
+import { LocationProvider } from "./context/LocationContext";
 import Header from "./components/Header";
 import Categories from "./components/Categories";
 import { categories } from "./data/categories";
@@ -22,6 +23,8 @@ import ShippingPolicyPage from "./pages/ShippingPolicyPage";
 import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import MessagesPage from "./pages/MessagesPage";
+import LocationPrompt from "./components/LocationPrompt";
+import { useLocation as useLocationContext } from "./context/LocationContext";
 import "./App.css";
 
 // Create context for navigation toggle
@@ -29,9 +32,19 @@ export const NavigationContext = createContext();
 
 function AppContent() {
   const location = useLocation();
+  const { selectedLocation, selectedCity } = useLocationContext();
   const isLoginPage = location.pathname === '/login';
   const isMarketPlacePage = location.pathname === '/marketplace';
   const [showNavigation, setShowNavigation] = React.useState(false);
+  const [showLocationPrompt, setShowLocationPrompt] = React.useState(false);
+
+  // Show location prompt on first load if no location is set
+  React.useEffect(() => {
+    const hasSeenPrompt = localStorage.getItem('location_prompt_seen');
+    if (!hasSeenPrompt && !selectedLocation && !selectedCity && !isLoginPage) {
+      setShowLocationPrompt(true);
+    }
+  }, [selectedLocation, selectedCity, isLoginPage]);
 
   const scrollToCategories = () => {
     const element = document.getElementById('home-categories');
@@ -43,9 +56,21 @@ function AppContent() {
   // Hide navigation on login and marketplace pages (unless toggled on)
   const shouldShowNav = !isLoginPage && (!isMarketPlacePage || showNavigation);
 
+  const handleLocationPromptClose = () => {
+    setShowLocationPrompt(false);
+    localStorage.setItem('location_prompt_seen', 'true');
+  };
+
   return (
     <NavigationContext.Provider value={{ showNavigation, setShowNavigation }}>
       <div className="App">
+        {showLocationPrompt && (
+          <LocationPrompt
+            isOpen={showLocationPrompt}
+            onClose={handleLocationPromptClose}
+          />
+        )}
+
         {shouldShowNav && <Header />}
         {shouldShowNav && <Categories />}
 
@@ -119,9 +144,11 @@ function App() {
     <AuthProvider>
       <ProductProvider>
         <CartProvider>
-          <Router>
-            <AppContent />
-          </Router>
+          <LocationProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </LocationProvider>
         </CartProvider>
       </ProductProvider>
     </AuthProvider>

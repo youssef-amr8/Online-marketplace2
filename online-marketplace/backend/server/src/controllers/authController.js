@@ -159,6 +159,34 @@ const updateSeller = async (req, res) => {
     if (storeName) user.sellerProfile.storeName = storeName;
     if (storeDescription) user.sellerProfile.storeDescription = storeDescription;
 
+    // Handle Serviceability updates
+    const { location, deliverySettings } = req.body;
+    if (location) {
+      // Ensure structure: { type: 'Point', coordinates: [lng, lat], address: '...' }
+      if (!user.sellerProfile.location) {
+        user.sellerProfile.location = {};
+      }
+      user.sellerProfile.location = {
+        type: 'Point',
+        coordinates: location.coordinates || [0, 0],
+        address: location.address || ''
+      };
+    }
+    if (deliverySettings) {
+      if (!user.sellerProfile.deliverySettings) {
+        user.sellerProfile.deliverySettings = {};
+      }
+      user.sellerProfile.deliverySettings = {
+        maxDeliveryRange: deliverySettings.maxDeliveryRange !== undefined ? deliverySettings.maxDeliveryRange : 0,
+        serviceableCities: deliverySettings.serviceableCities || [],
+        baseDeliveryFee: deliverySettings.baseDeliveryFee !== undefined ? deliverySettings.baseDeliveryFee : 0,
+        pricePerKm: deliverySettings.pricePerKm !== undefined ? deliverySettings.pricePerKm : 0
+      };
+    }
+
+    // Mark the sellerProfile as modified to ensure Mongoose saves it
+    user.markModified('sellerProfile');
+
     await user.save();
 
     res.status(200).json({
@@ -172,10 +200,13 @@ const updateSeller = async (req, res) => {
           role: user.role,
           phone: user.phone,
           storeName: user.sellerProfile?.storeName,
-          storeDescription: user.sellerProfile?.storeDescription
+          storeDescription: user.sellerProfile?.storeDescription,
+          location: user.sellerProfile?.location,
+          deliverySettings: user.sellerProfile?.deliverySettings
         }
       }
     });
+
   } catch (err) {
     res.status(500).json({ message: 'Update failed', error: err.message });
   }
