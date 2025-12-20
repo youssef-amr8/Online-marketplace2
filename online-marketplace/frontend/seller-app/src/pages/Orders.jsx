@@ -3,7 +3,7 @@ import Modal from "../components/Modal";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getSellerOrders, updateOrderStatus } from "../services/orderService";
-import { flagBuyer } from "../services/flagService";
+import { flagBuyer, getFlagCount } from "../services/flagService";
 import "./PageStyles.css";
 
 function Orders() {
@@ -23,6 +23,7 @@ function Orders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [flagReason, setFlagReason] = useState("");
   const [submittingFlag, setSubmittingFlag] = useState(false);
+  const [buyerFlagCounts, setBuyerFlagCounts] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -43,11 +44,11 @@ function Orders() {
       } else if (typeof error === 'string') {
         msg = error;
       }
-      
+
       if (msg.includes('Failed to fetch') || msg.includes('Network')) {
         msg = 'Cannot connect to server. Please make sure the backend is running on port 3000.';
       }
-      
+
       alert(`Error: ${msg}`);
     }
   };
@@ -80,6 +81,9 @@ function Orders() {
         .map(mapOrderToDisplay);
       setRecentCompleted(completed);
 
+      // Fetch buyer flag counts for pending orders
+      fetchBuyerFlagCounts(orders.filter(o => o.status === 'Pending'));
+
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -87,16 +91,46 @@ function Orders() {
     }
   };
 
-  const mapOrderToDisplay = (order) => ({
-    id: order._id || order.id,
-    product: order.items?.[0]?.itemId?.title || 'Product',
-    qty: order.items?.[0]?.quantity || 1,
-    buyer: order.buyerId?.name || 'Customer',
-    buyerId: order.buyerId?._id || order.buyerId,
-    amount: order.totalPrice || 0,
-    date: new Date(order.createdAt).toLocaleDateString(),
-    status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
-  });
+  const mapOrderToDisplay = (order) => {
+    const allItems = order.items?.map(item => ({
+      id: item.itemId?._id || item.itemId,
+      title: item.itemId?.title || 'Product',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+    })) || [];
+
+    return {
+      id: order._id || order.id,
+      items: allItems,
+      product: allItems.map(i => i.title).join(', ') || 'Product',
+      totalQty: allItems.reduce((sum, i) => sum + i.quantity, 0),
+      buyer: order.buyerId?.name || 'Customer',
+      buyerId: order.buyerId?._id || order.buyerId,
+      amount: order.totalPrice || 0,
+      date: new Date(order.createdAt).toLocaleDateString(),
+      rawStatus: order.status,
+      status: order.status === 'Pending' ? 'Awaiting Shipment' : order.status === 'Accepted' ? 'Shipped' : order.status
+    };
+  };
+
+  // Fetch flag counts for buyers in orders
+  const fetchBuyerFlagCounts = async (orders) => {
+    const counts = {};
+    for (const order of orders) {
+      if (order.buyerId?._id) {
+        try {
+          const data = await getFlagCount(order.buyerId._id);
+          if (data.unresolvedFlagCount > 0) {
+            counts[order.buyerId._id] = data.unresolvedFlagCount;
+          }
+        } catch (error) {
+          // Silently ignore individual errors
+        }
+      }
+    }
+    setBuyerFlagCounts(counts);
+  };
 
   const handleFlagBuyer = async () => {
     if (!flagReason.trim()) {
@@ -220,21 +254,53 @@ function Orders() {
               <tbody>
                 {pendingOrders.map((order) => (
                   <tr key={order.id}>
-                    <td className="order-id">#{order.id}</td>
-                    <td className="product-cell">{order.product}</td>
-                    <td>{order.buyer}</td>
+                    <td className="order-id">#{order.id.substring(0, 8)}</td>
+                    <td className="product-cell">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {order.items?.slice(0, 3).map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '4px' }}
+                            />
+                            <span style={{ fontSize: '13px' }}>{item.title} x{item.quantity}</span>
+                          </div>
+                        ))}
+                        {order.items?.length > 3 && (
+                          <span style={{ fontSize: '12px', color: '#666' }}>+{order.items.length - 3} more items</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {order.buyer}
+                        {buyerFlagCounts[order.buyerId] > 0 && (
+                          <span
+                            title={`⚠️ This buyer has ${buyerFlagCounts[order.buyerId]} flag(s) from other sellers`}
+                            style={{
+                              color: '#dc3545',
+                              fontSize: '14px',
+                              cursor: 'help'
+                            }}
+                          >
+                            🚩{buyerFlagCounts[order.buyerId]}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
                     <td><span className="status-badge pending">{order.status}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {order.status === 'Pending' ? (
+                        {order.rawStatus === 'Pending' ? (
                           <button className="action-btn-small ship" onClick={() => handleShipNow(order.id)}>
                             <i className="fas fa-shipping-fast"></i> Ship Now
                           </button>
                         ) : (
                           <button className="action-btn-small" disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>
-                            <i className="fas fa-truck"></i> {order.status === 'Shipped' ? 'Shipped' : 'Processing'}
+                            <i className="fas fa-truck"></i> {order.rawStatus === 'Shipped' ? 'Shipped' : 'Processing'}
                           </button>
                         )}
                         <button
@@ -289,33 +355,50 @@ function Orders() {
               <tbody>
                 {recentCompleted.map((order) => (
                   <tr key={order.id}>
-                    <td className="order-id">#{order.id}</td>
-                    <td className="product-cell">{order.product}</td>
+                    <td className="order-id">#{order.id.substring(0, 8)}</td>
+                    <td className="product-cell">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {order.items?.slice(0, 2).map((item, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px' }}
+                            />
+                            <span style={{ fontSize: '12px' }}>{item.title} x{item.quantity}</span>
+                          </div>
+                        ))}
+                        {order.items?.length > 2 && (
+                          <span style={{ fontSize: '11px', color: '#666' }}>+{order.items.length - 2} more</span>
+                        )}
+                      </div>
+                    </td>
                     <td>{order.buyer}</td>
                     <td><span className="date-tag">{order.date}</span></td>
                     <td className="amount">${order.amount}</td>
                     <td>
-                      <span className="status-badge completed">{order.status}</span>
-                      <button
-                        className="action-btn-small"
-                        onClick={() => openFlagModal(order)}
-                        style={{
-                          backgroundColor: '#ff6b6b',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px'
-                        }}
-                      >
-                        <span>🚩</span>
-                        <span>Flag</span>
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="status-badge completed">{order.status}</span>
+                        <button
+                          className="action-btn-small"
+                          onClick={() => openFlagModal(order)}
+                          style={{
+                            backgroundColor: '#ff6b6b',
+                            color: 'white',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span>🚩</span>
+                          <span>Flag</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

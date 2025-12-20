@@ -26,7 +26,7 @@ function Dashboard() {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
@@ -34,7 +34,7 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const userData = JSON.parse(localStorage.getItem('seller_user') || '{}');
     if (userData.isAuthenticated && userData.type === 'seller') {
       setUser(userData);
     }
@@ -57,7 +57,7 @@ function Dashboard() {
         orderDate.setHours(0, 0, 0, 0);
         return orderDate.getTime() === today.getTime();
       });
-      
+
       const revenueToday = todayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
       const pendingOrdersCount = orders.filter(o => o.status === 'Pending').length;
       const lowStockItems = items.items?.filter(item => item.stock < 5).length || 0;
@@ -87,7 +87,7 @@ function Dashboard() {
           message: `Order #${order._id.substring(0, 8)} has been delivered`,
           time: formatTimeAgo(order.updatedAt || order.createdAt)
         }));
-      
+
       const lowStockAlerts = items.items
         ?.filter(item => item.stock < 5)
         .slice(0, 2)
@@ -97,14 +97,14 @@ function Dashboard() {
           message: `${item.title} stock below ${item.stock} units`,
           time: formatTimeAgo(item.updatedAt || item.createdAt)
         })) || [];
-      
+
       setAlerts([...recentDelivered, ...lowStockAlerts].slice(0, 3));
 
       // Set activity feed from recent orders
       const recentOrders = orders.slice(0, 6).map(order => ({
         id: order._id,
         type: order.status === 'Shipped' ? "shipped" : "order",
-        text: order.status === 'Shipped' 
+        text: order.status === 'Shipped'
           ? `Order #${order._id.substring(0, 8)} marked as shipped`
           : `New order from ${order.buyerId?.name || 'Customer'}`,
         amount: order.totalPrice,
@@ -270,8 +270,8 @@ function Dashboard() {
                   {alerts.map((alert) => (
                     <div key={alert.id} className={`alert-item ${alert.type}`}>
                       <i className={`fas ${alert.type === 'success' ? 'fa-check-circle' :
-                          alert.type === 'warning' ? 'fa-exclamation-triangle' :
-                            'fa-info-circle'
+                        alert.type === 'warning' ? 'fa-exclamation-triangle' :
+                          'fa-info-circle'
                         }`}></i>
                       <div className="alert-content">
                         <p>{alert.message}</p>

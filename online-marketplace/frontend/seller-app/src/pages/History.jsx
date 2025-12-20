@@ -1,7 +1,9 @@
 import Sidebar from "../components/Sidebar";
+import Modal from "../components/Modal";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getSellerOrders } from "../services/orderService";
+import { flagBuyer } from "../services/flagService";
 import "./PageStyles.css";
 
 function History() {
@@ -11,6 +13,10 @@ function History() {
 
   const [soldOrders, setSoldOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [flagReason, setFlagReason] = useState("");
+  const [submittingFlag, setSubmittingFlag] = useState(false);
 
   useEffect(() => {
     fetchHistory();
@@ -30,16 +36,28 @@ function History() {
       // Filter for history statuses
       const historyOrders = orders
         .filter(order => order && ['Delivered', 'Refunded', 'Cancelled'].includes(order.status))
-        .map(order => ({
-          id: order._id || order.id,
-          product: order.items?.[0]?.itemId?.title || 'Product',
-          qty: order.items?.[0]?.quantity || 1,
-          buyer: order.buyerId?.name || 'Customer',
-          amount: order.totalPrice || 0,
-          date: new Date(order.createdAt).toLocaleDateString(),
-          status: order.status,
-          image: order.items?.[0]?.itemId?.images?.[0] || 'https://via.placeholder.com/100'
-        }));
+        .map(order => {
+          const allItems = order.items?.map(item => ({
+            id: item.itemId?._id || item.itemId,
+            title: item.itemId?.title || 'Product',
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            image: item.itemId?.images?.[0] || 'https://via.placeholder.com/100'
+          })) || [];
+
+          return {
+            id: order._id || order.id,
+            items: allItems,
+            product: allItems.map(i => i.title).join(', ') || 'Product',
+            qty: allItems.reduce((sum, i) => sum + i.quantity, 0),
+            buyer: order.buyerId?.name || 'Customer',
+            buyerId: order.buyerId?._id || order.buyerId,
+            amount: order.totalPrice || 0,
+            date: new Date(order.createdAt).toLocaleDateString(),
+            status: order.status,
+            image: allItems[0]?.image || 'https://via.placeholder.com/100'
+          };
+        });
       setSoldOrders(historyOrders);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -47,6 +65,38 @@ function History() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFlagBuyer = async () => {
+    if (!flagReason.trim()) {
+      alert("Please describe the problem you faced");
+      return;
+    }
+
+    if (!selectedOrder || !selectedOrder.buyerId) {
+      alert("Unable to identify buyer. Please try again later.");
+      return;
+    }
+
+    setSubmittingFlag(true);
+    try {
+      await flagBuyer(selectedOrder.buyerId, flagReason, selectedOrder.id);
+      alert("Thank you for reporting this issue. We will review it shortly.");
+      setShowFlagModal(false);
+      setFlagReason("");
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error("Error flagging buyer:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to submit flag";
+      alert(`Failed to submit flag: ${errorMsg}`);
+    } finally {
+      setSubmittingFlag(false);
+    }
+  };
+
+  const openFlagModal = (order) => {
+    setSelectedOrder(order);
+    setShowFlagModal(true);
   };
 
   // Stats
@@ -161,20 +211,48 @@ function History() {
                 <tbody>
                   {filteredOrders.map((order) => (
                     <tr key={order.id}>
-                      <td className="order-id">#{order.id}</td>
+                      <td className="order-id">#{order.id.substring(0, 8)}</td>
                       <td>
-                        <div className="product-cell-with-img">
-                          <img src={order.image} alt={order.product} />
-                          <span>{order.product}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {order.items?.slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="product-cell-with-img" style={{ marginBottom: idx < order.items.length - 1 ? '4px' : 0 }}>
+                              <img src={item.image} alt={item.title} style={{ width: '32px', height: '32px', objectFit: 'cover' }} />
+                              <span style={{ fontSize: '12px' }}>{item.title} x{item.quantity}</span>
+                            </div>
+                          ))}
+                          {order.items?.length > 3 && (
+                            <span style={{ fontSize: '11px', color: '#666' }}>+{order.items.length - 3} more</span>
+                          )}
                         </div>
                       </td>
                       <td>{order.buyer}</td>
                       <td><span className="date-tag">{order.date}</span></td>
                       <td className="amount">${order.amount}</td>
                       <td>
-                        <span className={`status-badge ${order.status ? order.status.toLowerCase() : ''}`}>
-                          {order.status}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span className={`status-badge ${order.status ? order.status.toLowerCase() : ''}`}>
+                            {order.status}
+                          </span>
+                          <button
+                            className="action-btn-small"
+                            onClick={() => openFlagModal(order)}
+                            style={{
+                              backgroundColor: '#ff6b6b',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>🚩</span>
+                            <span>Flag</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -184,6 +262,66 @@ function History() {
           )}
         </div>
       </div>
+
+      {/* Flag Buyer Modal */}
+      <Modal
+        isOpen={showFlagModal}
+        onClose={() => {
+          setShowFlagModal(false);
+          setFlagReason("");
+          setSelectedOrder(null);
+        }}
+        title="Flag Buyer"
+        actions={
+          <>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setShowFlagModal(false);
+                setFlagReason("");
+                setSelectedOrder(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleFlagBuyer}
+              disabled={submittingFlag || !flagReason.trim()}
+            >
+              {submittingFlag ? "Submitting..." : "Submit Flag"}
+            </button>
+          </>
+        }
+      >
+        <div style={{ padding: '20px' }}>
+          <p style={{ marginBottom: '15px', fontSize: '16px' }}>
+            <strong>What problem did you face with this buyer?</strong>
+          </p>
+          {selectedOrder && (
+            <p style={{ marginBottom: '15px', fontSize: '14px', color: '#666' }}>
+              Buyer: {selectedOrder.buyer} (Order #{selectedOrder.id})
+            </p>
+          )}
+          <textarea
+            value={flagReason}
+            onChange={(e) => setFlagReason(e.target.value)}
+            placeholder="Please describe the issue you encountered..."
+            rows={6}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+          <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+            Your report will be reviewed by our team. We take all reports seriously.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

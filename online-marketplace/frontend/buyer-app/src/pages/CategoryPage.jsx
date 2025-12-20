@@ -16,8 +16,7 @@ const CategoryPage = () => {
   const [categoryName, setCategoryName] = useState("");
   const [sortBy, setSortBy] = useState("featured");
   const [priceFilter, setPriceFilter] = useState("all");
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [deliveryLocation, setDeliveryLocation] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -157,24 +156,7 @@ const CategoryPage = () => {
       });
     }
 
-    // Apply brand filter
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter(p =>
-        selectedBrands.includes(p.brand || "Other")
-      );
-    }
 
-    // Apply Delivery Location filter
-    if (deliveryLocation.trim()) {
-      const city = deliveryLocation.toLowerCase().trim();
-      filtered = filtered.filter(p => {
-        // If seller hasn't defined service cities, assume they deliver everywhere (or nowhere, depending on business rule).
-        // Here assuming they deliver everywhere if list is empty, OR checking if city is in list.
-        const cities = p.serviceCities || [];
-        if (cities.length === 0) return true; // Treats empty as "Global" for legacy compatibility
-        return cities.some(c => c.toLowerCase().includes(city));
-      });
-    }
 
     // Apply sorting
     switch (sortBy) {
@@ -194,13 +176,7 @@ const CategoryPage = () => {
     return filtered;
   };
 
-  const handleBrandToggle = (brand) => {
-    setSelectedBrands(prev =>
-      prev.includes(brand)
-        ? prev.filter(b => b !== brand)
-        : [...prev, brand]
-    );
-  };
+
 
   const filteredProducts = getFilteredProducts();
 
@@ -292,52 +268,7 @@ const CategoryPage = () => {
               </div>
             </div>
 
-            <div className="filter-section">
-              <h4>Brand</h4>
-              <div className="filter-list">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Samsung")}
-                    onChange={() => handleBrandToggle("Samsung")}
-                  /> Samsung
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Apple")}
-                    onChange={() => handleBrandToggle("Apple")}
-                  /> Apple
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("Sony")}
-                    onChange={() => handleBrandToggle("Sony")}
-                  /> Sony
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes("LG")}
-                    onChange={() => handleBrandToggle("LG")}
-                  /> LG
-                </label>
-              </div>
-            </div>
 
-            <div className="filter-section">
-              <h4>Delivery Location</h4>
-              <div className="filter-input-container">
-                <input
-                  type="text"
-                  placeholder="Enter City..."
-                  value={deliveryLocation}
-                  onChange={(e) => setDeliveryLocation(e.target.value)}
-                  className="filter-text-input"
-                />
-              </div>
-            </div>
           </div>
 
           {/* Products Section */}
@@ -383,8 +314,7 @@ const CategoryPage = () => {
                   <button onClick={() => {
                     setSearchQuery("");
                     setPriceFilter("all");
-                    setSelectedBrands([]);
-                    setDeliveryLocation("");
+
                   }} className="amazon-btn amazon-btn-secondary">Clear Filters</button>
                 </div>
               )}

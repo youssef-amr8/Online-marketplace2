@@ -117,12 +117,16 @@ function YourListings() {
     return stars;
   };
 
-  const activeCount = products.filter(p => p.status === "active").length;
+  const activeCount = products.filter(p => p.status === "active" || p.status === "low_stock").length;
   const lowStockCount = products.filter(p => p.status === "low_stock").length;
   const outOfStockCount = products.filter(p => p.status === "out_of_stock").length;
 
   const filteredProducts = products.filter(product => {
-    const matchesFilter = filter === "all" || product.status === filter;
+    let matchesFilter = filter === "all" || product.status === filter;
+    // When filtering by 'active', also include low_stock products
+    if (filter === "active" && product.status === "low_stock") {
+      matchesFilter = true;
+    }
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -159,13 +163,7 @@ function YourListings() {
               <span className="stat-label">Active</span>
             </div>
           </div>
-          <div className="stat-card warning">
-            <i className="fas fa-exclamation-triangle"></i>
-            <div className="stat-data">
-              <span className="stat-num">{lowStockCount}</span>
-              <span className="stat-label">Low Stock</span>
-            </div>
-          </div>
+
           <div className="stat-card danger">
             <i className="fas fa-times-circle"></i>
             <div className="stat-data">
@@ -191,12 +189,7 @@ function YourListings() {
               >
                 Active ({activeCount})
               </button>
-              <button
-                className={`filter-tab ${filter === "low_stock" ? "active" : ""}`}
-                onClick={() => setFilter("low_stock")}
-              >
-                Low Stock ({lowStockCount})
-              </button>
+
               <button
                 className={`filter-tab ${filter === "out_of_stock" ? "active" : ""}`}
                 onClick={() => setFilter("out_of_stock")}

@@ -11,5 +11,7 @@ router.post('/login/seller', authController.loginSeller);
 
 // Protected route
 router.post('/logout', authMiddleware, authController.logout);
+router.put('/update/seller', authMiddleware, authController.updateSeller);
+router.put('/update/buyer', authMiddleware, authController.updateBuyer);
 
 module.exports = router;

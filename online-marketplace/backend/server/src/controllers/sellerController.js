@@ -1,71 +1,112 @@
 const Seller = require('../models/seller');
+const { success, error } = require('../utils/response');
 
-// Get Seller Profile
-const getProfile = async (req, res) => {
+/**
+ * Update seller's service area configuration
+ * PUT /api/sellers/service-area
+ */
+exports.updateServiceArea = async (req, res) => {
     try {
-        const seller = await Seller.findById(req.user.id).select('-passwordHash');
-        if (!seller) {
-            return res.status(404).json({ message: 'Seller not found' });
+        const sellerId = req.user.id || req.user._id;
+        if (!sellerId) {
+            return error(res, 'Seller ID not found in token', 401);
         }
-        res.json({
-            success: true,
-            data: seller
+
+        const { location, deliverySettings } = req.body;
+
+        // Validate location if provided
+        if (location && location.coordinates) {
+            if (!Array.isArray(location.coordinates) || location.coordinates.length !== 2) {
+                return error(res, 'Invalid location coordinates. Expected [longitude, latitude]', 400);
+            }
+            const [lng, lat] = location.coordinates;
+            if (typeof lng !== 'number' || typeof lat !== 'number') {
+                return error(res, 'Coordinates must be numbers', 400);
+            }
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                return error(res, 'Invalid coordinates range', 400);
+            }
+        }
+
+        // Validate delivery settings if provided
+        if (deliverySettings) {
+            if (deliverySettings.maxDeliveryRange !== undefined && deliverySettings.maxDeliveryRange < 0) {
+                return error(res, 'Max delivery range must be non-negative', 400);
+            }
+            if (deliverySettings.baseDeliveryFee !== undefined && deliverySettings.baseDeliveryFee < 0) {
+                return error(res, 'Base delivery fee must be non-negative', 400);
+            }
+            if (deliverySettings.pricePerKm !== undefined && deliverySettings.pricePerKm < 0) {
+                return error(res, 'Price per km must be non-negative', 400);
+            }
+        }
+
+        // Build update object
+        const updateData = {};
+        if (location) {
+            updateData['sellerProfile.location'] = location;
+        }
+        if (deliverySettings) {
+            if (deliverySettings.maxDeliveryRange !== undefined) {
+                updateData['sellerProfile.deliverySettings.maxDeliveryRange'] = deliverySettings.maxDeliveryRange;
+            }
+            if (deliverySettings.serviceableCities !== undefined) {
+                updateData['sellerProfile.deliverySettings.serviceableCities'] = deliverySettings.serviceableCities;
+            }
+            if (deliverySettings.baseDeliveryFee !== undefined) {
+                updateData['sellerProfile.deliverySettings.baseDeliveryFee'] = deliverySettings.baseDeliveryFee;
+            }
+            if (deliverySettings.pricePerKm !== undefined) {
+                updateData['sellerProfile.deliverySettings.pricePerKm'] = deliverySettings.pricePerKm;
+            }
+        }
+
+        const seller = await Seller.findByIdAndUpdate(
+            sellerId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('sellerProfile.location sellerProfile.deliverySettings');
+
+        if (!seller) {
+            return error(res, 'Seller not found', 404);
+        }
+
+        return success(res, {
+            location: seller.sellerProfile?.location,
+            deliverySettings: seller.sellerProfile?.deliverySettings
         });
+
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching profile', error: err.message });
+        console.error('[sellerController] updateServiceArea error:', err);
+        return error(res, err.message, 500);
     }
 };
 
-// Update Seller Profile
-const updateProfile = async (req, res) => {
+/**
+ * Get seller's service area configuration
+ * GET /api/sellers/:id/service-area
+ */
+exports.getServiceArea = async (req, res) => {
     try {
-        const { name, storeName, storeDescription, phone, address,
-            city, serviceCities, baseDeliveryFee, deliveryFeePerKm } = req.body;
+        const { id } = req.params;
 
-        const seller = await Seller.findById(req.user.id);
+        const seller = await Seller.findById(id)
+            .select('name email sellerProfile.storeName sellerProfile.location sellerProfile.deliverySettings');
+
         if (!seller) {
-            return res.status(404).json({ message: 'Seller not found' });
+            return error(res, 'Seller not found', 404);
         }
 
-        // Update basic info
-        if (name) seller.name = name;
-
-        // Init profile if missing
-        if (!seller.sellerProfile) seller.sellerProfile = {};
-
-        // Update profile fields
-        if (storeName !== undefined) seller.sellerProfile.storeName = storeName;
-        if (storeDescription !== undefined) seller.sellerProfile.storeDescription = storeDescription; // Note: Schema might need this field if not present
-        // Add fields to schema if missing or pack into a "bio" or similar if strict. 
-        // For now relying on Flexible schema or the ones we explicitly added.
-
-        // Let's check schema: storeName, taxId, city, serviceCities... 
-        // We need to support the fields we're sending.
-
-        if (city !== undefined) seller.sellerProfile.city = city;
-        if (serviceCities !== undefined) seller.sellerProfile.serviceCities = serviceCities;
-        if (baseDeliveryFee !== undefined) seller.sellerProfile.baseDeliveryFee = baseDeliveryFee;
-        if (deliveryFeePerKm !== undefined) seller.sellerProfile.deliveryFeePerKm = deliveryFeePerKm;
-
-        // If schema has other fields like phone/address on root or profile, update them.
-        // Checking Seller Model: name, email, passwordHash, role, sellerProfile(storeName, taxId, serviceCities, city...).
-        // Phone/Address are NOT in the current schema based on previous `view_file`.
-        // We should add them to schema if we want to save them, but for this task (Serviceability), 
-        // Store Name, City, and ServiceCities are the critical ones.
-
-        await seller.save();
-
-        res.json({
-            success: true,
-            message: 'Profile updated successfully',
-            data: seller
+        return success(res, {
+            sellerId: seller._id,
+            name: seller.name,
+            storeName: seller.sellerProfile?.storeName,
+            location: seller.sellerProfile?.location,
+            deliverySettings: seller.sellerProfile?.deliverySettings
         });
-    } catch (err) {
-        res.status(500).json({ message: 'Error updating profile', error: err.message });
-    }
-};
 
-module.exports = {
-    getProfile,
-    updateProfile
+    } catch (err) {
+        console.error('[sellerController] getServiceArea error:', err);
+        return error(res, err.message, 500);
+    }
 };

@@ -27,7 +27,7 @@ function Orders() {
       const mappedOrders = apiOrders.map(order => {
         // Extract sellerId - handle both populated object and ObjectId string
         let sellerId = null;
-        
+
         // First try: get from order.sellerId (populated or not)
         if (order.sellerId) {
           // If it's a populated object (has _id property)
@@ -40,7 +40,7 @@ function Orders() {
               // Might be a Mongoose ObjectId object
               sellerId = order.sellerId.toString ? String(order.sellerId) : null;
             }
-          } 
+          }
           // If it's a string
           else if (typeof order.sellerId === 'string') {
             sellerId = order.sellerId;
@@ -50,7 +50,7 @@ function Orders() {
             sellerId = String(order.sellerId);
           }
         }
-        
+
         // Fallback: try to get sellerId from items if not found on order
         if (!sellerId && order.items && order.items.length > 0) {
           // Check if items have sellerId populated
@@ -66,7 +66,7 @@ function Orders() {
             }
           }
         }
-        
+
         // Debug logging for troubleshooting
         if (!sellerId) {
           console.warn('⚠️ Could not extract sellerId from order:', {
@@ -80,7 +80,18 @@ function Orders() {
         } else {
           console.log('✅ Extracted sellerId:', sellerId, 'from order:', order._id);
         }
-        
+
+        // Safely map items, filtering out any that don't have itemId populated
+        const validItems = (order.items || [])
+          .filter(item => item.itemId) // Filter out items where itemId is null/undefined
+          .map(item => ({
+            id: item.itemId._id || item.itemId.id || 'unknown',
+            name: item.itemId.title || 'Product Unavailable',
+            image: (item.itemId.images && item.itemId.images[0]) || 'https://via.placeholder.com/100',
+            price: item.price || 0,
+            quantity: item.quantity || 1
+          }));
+
         return {
           id: order._id,
           orderId: order._id, // Use _id as display ID for now
@@ -92,15 +103,9 @@ function Orders() {
           city: 'Cairo',
           countryName: 'Egypt',
           sellerId: sellerId, // Include sellerId for flagging
-          items: order.items.map(item => ({
-            id: item.itemId._id,
-            name: item.itemId.title,
-            image: item.itemId.images[0] || 'https://via.placeholder.com/100',
-            price: item.price,
-            quantity: item.quantity
-          }))
+          items: validItems
         };
-      });
+      }).filter(order => order.items.length > 0); // Filter out orders with no valid items
 
       // Filter logic (simplified for real data)
       // Note: Real filter implementation would be more complex with dates
@@ -108,6 +113,7 @@ function Orders() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setOrders([]); // Ensure orders is set even on error
       setLoading(false);
     }
   };
@@ -118,12 +124,23 @@ function Orders() {
         await orderService.updateOrderStatus(orderId, 'Delivered');
         await fetchOrders(); // Refresh list
         alert("Order confirmed as delivered! It will now appear in History.");
-        // If we're on pending tab and no more pending orders, could switch to history
-        // But let's keep it simple and just refresh
       }
     } catch (error) {
       console.error("Error confirming delivery:", error);
       alert("Failed to confirm delivery.");
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      if (window.confirm("Are you sure you want to cancel this order? Stock will be restored.")) {
+        await orderService.updateOrderStatus(orderId, 'Cancelled');
+        await fetchOrders(); // Refresh list
+        alert("Order cancelled successfully. It will now appear in your History.");
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert(error.response?.data?.message || "Failed to cancel order.");
     }
   };
 
@@ -136,13 +153,13 @@ function Orders() {
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.items?.some(item => item.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     if (activeTab === 'pending') {
-      // Show orders that are not delivered
-      return matchesSearch && order.status !== 'delivered';
+      // Show orders that are not delivered and not cancelled
+      return matchesSearch && order.status !== 'delivered' && order.status !== 'cancelled';
     } else {
-      // Show only delivered orders
-      return matchesSearch && order.status === 'delivered';
+      // Show delivered and cancelled orders
+      return matchesSearch && (order.status === 'delivered' || order.status === 'cancelled');
     }
   });
 
@@ -155,9 +172,9 @@ function Orders() {
       />
 
       {/* Tabs */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '10px', 
+      <div style={{
+        display: 'flex',
+        gap: '10px',
         marginBottom: '20px',
         borderBottom: '2px solid #e0e0e0',
         paddingBottom: '10px'
@@ -176,7 +193,7 @@ function Orders() {
             marginBottom: '-12px'
           }}
         >
-          Pending Orders ({orders.filter(o => o.status !== 'delivered').length})
+          Pending Orders ({orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length})
         </button>
         <button
           onClick={() => setActiveTab('history')}
@@ -192,7 +209,7 @@ function Orders() {
             marginBottom: '-12px'
           }}
         >
-          History ({orders.filter(o => o.status === 'delivered').length})
+          History ({orders.filter(o => o.status === 'delivered' || o.status === 'cancelled').length})
         </button>
       </div>
 
@@ -214,6 +231,7 @@ function Orders() {
                 key={order.id}
                 order={order}
                 onConfirmDelivery={() => handleConfirmDelivery(order.id)}
+                onCancelOrder={() => handleCancelOrder(order.id)}
               />
             ))}
           </div>

@@ -1,7 +1,9 @@
 const Order = require('../models/order');
 const Item = require('../models/item');
+const Buyer = require('../models/buyer');
+const Seller = require('../models/seller');
 
-exports.createOrder = async ({ buyerId, items }) => {
+exports.createOrder = async ({ buyerId, items, deliveryFee }) => {
   // items: [{ itemId, quantity }]
   // fetch items and compute total
   const itemDocs = await Item.find({ _id: { $in: items.map(i => i.itemId) } });
@@ -19,15 +21,26 @@ exports.createOrder = async ({ buyerId, items }) => {
     await itemDoc.save();
   }
 
-  const totalPrice = itemsSnapshot.reduce((s, it) => s + it.quantity * it.price, 0);
+  let totalPrice = itemsSnapshot.reduce((s, it) => s + it.quantity * it.price, 0);
+
+  // Add delivery fee if present
+  const finalDeliveryFee = deliveryFee || 0;
+  totalPrice += finalDeliveryFee;
+
   // sellerId: for simplicity assume one seller; real-case you might split per seller
   const sellerId = itemDocs[0].sellerId;
-  const order = await Order.create({ buyerId, sellerId, items: itemsSnapshot, totalPrice });
+  const order = await Order.create({
+    buyerId,
+    sellerId,
+    items: itemsSnapshot,
+    totalPrice,
+    deliveryFee: finalDeliveryFee
+  });
   return order;
 };
 
 exports.updateStatus = async (orderId, userId, status) => {
-  const order = await Order.findById(orderId);
+  const order = await Order.findById(orderId).populate('items.itemId');
   if (!order) throw new Error('Order not found');
 
   // Convert userId to string for comparison (handles both ObjectId and string)
@@ -38,9 +51,42 @@ exports.updateStatus = async (orderId, userId, status) => {
   const isSeller = sellerIdStr === userIdStr;
   const isBuyer = buyerIdStr === userIdStr;
 
-  if (isSeller) {
+  // Handle cancellation logic
+  if (status === 'Cancelled') {
+    // Buyer can only cancel if order is Pending
+    if (isBuyer && order.status !== 'Pending') {
+      throw new Error('Buyers can only cancel pending orders');
+    }
+    // Seller can cancel any order except Delivered or already Cancelled
+    if (isSeller && (order.status === 'Delivered' || order.status === 'Cancelled')) {
+      throw new Error('Cannot cancel delivered or already cancelled orders');
+    }
+    // Must be either buyer or seller
+    if (!isBuyer && !isSeller) {
+      throw new Error('Not authorized to cancel this order');
+    }
+
+    // Restore stock for each item in the order
+    for (const orderItem of order.items) {
+      if (orderItem.itemId) {
+        const item = await Item.findById(orderItem.itemId._id || orderItem.itemId);
+        if (item) {
+          item.stock += orderItem.quantity;
+          await item.save();
+        }
+      }
+    }
+
+    // Increment refund counters
+    await Buyer.findByIdAndUpdate(order.buyerId, { $inc: { refundsCount: 1 } });
+    await Seller.findByIdAndUpdate(order.sellerId, { $inc: { refundsGiven: 1 } });
+
+    order.status = 'Cancelled';
+  } else if (isSeller) {
+    // Seller can update to any status
     order.status = status;
   } else if (isBuyer && status === 'Delivered') {
+    // Buyer can only confirm delivery
     order.status = 'Delivered';
   } else {
     throw new Error('Not authorized');
@@ -60,7 +106,7 @@ exports.getBuyerOrders = async (buyerId) => {
 
 exports.getSellerOrders = async (sellerId) => {
   const orders = await Order.find({ sellerId })
-    .populate('buyerId', 'name email')
+    .populate('buyerId', '_id name email')
     .populate('items.itemId', 'title images price')
     .sort({ createdAt: -1 });
   return orders;

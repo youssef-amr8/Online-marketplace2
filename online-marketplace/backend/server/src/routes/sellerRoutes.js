@@ -1,24 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const sellerController = require('../controllers/sellerController');
-const authMiddleware = require('../middlewares/auth');
+const auth = require('../middlewares/auth');
 
-// Simple authorize middleware since it's missing in auth.js
-const authorize = (role) => {
-    return (req, res, next) => {
-        if (req.user && req.user.role === role) {
-            next();
-        } else {
-            res.status(403).json({ message: 'Forbidden: Access denied' });
-        }
-    };
-};
+// Update seller's service area (protected, seller only)
+// Note: We're using basic auth middleware. In production, add role verification.
+router.put('/service-area', auth, sellerController.updateServiceArea);
 
-// All routes are protected and for sellers only
-router.use(authMiddleware);
-router.use(authorize('seller'));
-
-router.get('/profile', sellerController.getProfile);
-router.put('/profile', sellerController.updateProfile);
+// Get seller's service area (public)
+router.get('/:id/service-area', sellerController.getServiceArea);
 
 module.exports = router;

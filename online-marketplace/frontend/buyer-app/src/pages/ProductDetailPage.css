@@ -186,21 +186,7 @@
   line-height: 1.3;
 }
 
-.product-brand {
-  font-size: 14px;
-  color: #565959;
-  margin-bottom: 15px;
-}
 
-.brand-link {
-  color: #007185;
-  cursor: pointer;
-}
-
-.brand-link:hover {
-  color: #c7511f;
-  text-decoration: underline;
-}
 
 .product-rating-row {
   display: flex;

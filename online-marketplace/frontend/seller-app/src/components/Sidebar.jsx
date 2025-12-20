@@ -21,18 +21,32 @@ function Sidebar() {
   }, [insideOrders]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('seller_user');
+    localStorage.removeItem('seller_token');
     navigate('/login');
   };
 
-  // Get user info
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  // Get user info and listen for updates
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('seller_user') || '{}'));
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUser(JSON.parse(localStorage.getItem('seller_user') || '{}'));
+    };
+
+    window.addEventListener('storage', handleUserUpdate);
+    window.addEventListener('userUpdated', handleUserUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUserUpdate);
+      window.removeEventListener('userUpdated', handleUserUpdate);
+    };
+  }, []);
 
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <h2 className="sidebar-logo">
-          <i className="fas fa-store"></i> Seller Hub
+          <i className="fas fa-store"></i> {user.storeName || "Seller Hub"}
         </h2>
         {user.name && (
           <div className="sidebar-user">

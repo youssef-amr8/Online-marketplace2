@@ -5,6 +5,7 @@ import ProductCard from '../../components/common/ProductCard';
 import { categories } from '../../data/categories';
 import { NavigationContext } from '../../App';
 import { useProducts } from '../../context/ProductContext';
+import { useLocation } from '../../context/LocationContext';
 
 const MarketPlace = () => {
   const [user, setUser] = useState(null);
@@ -19,6 +20,8 @@ const MarketPlace = () => {
   const navigate = useNavigate();
   const { showNavigation, setShowNavigation } = useContext(NavigationContext);
   const { products: productsByCategory, loading: productsLoading, fetchProducts } = useProducts();
+  const { selectedLocation, selectedCity } = useLocation();
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
 
   useEffect(() => {
@@ -37,21 +40,52 @@ const MarketPlace = () => {
     setIsLoading(false);
   }, [navigate]);
 
-  // Fetch products from backend on mount
+  // Fetch products based on location
   useEffect(() => {
-    fetchProducts({ limit: 20 });
-  }, [fetchProducts]);
+    if (selectedLocation || selectedCity) {
+      fetchFilteredProducts();
+    } else {
+      fetchProducts({ limit: 20 }); // Show all if no location set
+    }
+  }, [selectedLocation, selectedCity]);
 
-  // Flatten products from all categories for display
+  const fetchFilteredProducts = async () => {
+    try {
+      const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${BASE_URL}/api/items/by-location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userLocation: selectedLocation,
+          city: selectedCity,
+          page: 1,
+          limit: 20
+        })
+      });
+      const data = await response.json();
+      if (data.success && data.data.items) {
+        setFilteredProducts(data.data.items);
+      }
+    } catch (error) {
+      console.error('Error fetching filtered products:', error);
+      fetchProducts({ limit: 20 }); // Fallback to all products
+    }
+  };
+
+  // Use filtered products if location is set, otherwise use all products
   const allProducts = React.useMemo(() => {
+    if (selectedLocation || selectedCity) {
+      return filteredProducts.slice(0, 8);
+    }
+
     const flatProducts = [];
     Object.keys(productsByCategory).forEach(category => {
       if (Array.isArray(productsByCategory[category])) {
         flatProducts.push(...productsByCategory[category]);
       }
     });
-    return flatProducts.slice(0, 8); // Show first 8 products
-  }, [productsByCategory]);
+    return flatProducts.slice(0, 8);
+  }, [productsByCategory, filteredProducts, selectedLocation, selectedCity]);
 
   const bannerItems = [
     { id: 1, title: "Flash Sale!", description: "Limited Time Offers", image: "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
@@ -182,18 +216,62 @@ const MarketPlace = () => {
             <i className="fas fa-user-circle"></i>
             Welcome back, <strong>{user.name}</strong>!
             <span className="user-type">Buyer Account</span>
+            {selectedCity && (
+              <span className="location-badge" style={{
+                marginLeft: '10px',
+                padding: '4px 10px',
+                background: '#E8F5E9',
+                color: '#067D62',
+                borderRadius: '12px',
+                fontSize: '13px',
+                fontWeight: '600'
+              }}>
+                <i className="fas fa-map-marker-alt"></i> {selectedCity}
+              </span>
+            )}
           </div>
           <div className="cart-section">
+            {selectedCity && (
+              <button
+                className="change-location-btn"
+                onClick={() => {
+                  localStorage.removeItem('location_prompt_seen');
+                  window.location.reload();
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: 'white',
+                  border: '1px solid #D5D9D9',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  marginRight: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <i className="fas fa-map-marker-alt"></i> Change Location
+              </button>
+            )}
             <button
-              className="cart-icon"
+              className="nav-toggle-btn"
               onClick={() => setShowNavigation(!showNavigation)}
               title={showNavigation ? "Hide Navigation" : "Show Navigation"}
             >
-              <i className={`fas ${showNavigation ? 'fa-eye-slash' : 'fa-bars'}`}></i>
-            </button>
-            <button className="cart-icon" onClick={() => setShowCart(!showCart)}>
-              <i className="fas fa-shopping-cart"></i>
-              {getCartCount() > 0 && <span className="cart-count">{getCartCount()}</span>}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                width="20"
+                height="20"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
             </button>
             <button className="logout-btn" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i> Logout
@@ -316,10 +394,11 @@ const MarketPlace = () => {
               <i className="fas fa-chevron-left"></i>
             </button>
             <button
-              className={`control - btn ${isCarouselPaused ? '' : 'pause-btn'} `}
+              className={`control-btn ${isCarouselPaused ? 'play-btn' : 'pause-btn'}`}
               onClick={() => setIsCarouselPaused(!isCarouselPaused)}
+              title={isCarouselPaused ? 'Start Carousel' : 'Pause Carousel'}
             >
-              <i className={`fas ${isCarouselPaused ? 'fa-play' : 'fa-pause'} `}></i>
+              <i className={`fas ${isCarouselPaused ? 'fa-play' : 'fa-pause'}`}></i>
             </button>
             <button className="control-btn next-btn" onClick={handleNextClick}>
               <i className="fas fa-chevron-right"></i>

@@ -22,7 +22,7 @@ function Analytics() {
     const [recentTransactions, setRecentTransactions] = useState([]);
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const userData = JSON.parse(localStorage.getItem("seller_user") || "{}");
         if (userData.isAuthenticated && userData.type === "seller") {
             setUser(userData);
         } else {
@@ -35,7 +35,7 @@ function Analytics() {
         try {
             setIsLoading(true);
             const orders = await getSellerOrders();
-            
+
             // Filter orders based on time range
             const now = new Date();
             let startDate = new Date();
@@ -46,7 +46,7 @@ function Analytics() {
             } else if (timeRange === "month") {
                 startDate.setMonth(now.getMonth() - 1);
             }
-            
+
             const filteredOrders = orders.filter(order => {
                 const orderDate = new Date(order.createdAt);
                 return orderDate >= startDate;
@@ -77,12 +77,12 @@ function Analytics() {
                 date.setHours(0, 0, 0, 0);
                 const nextDate = new Date(date);
                 nextDate.setDate(nextDate.getDate() + 1);
-                
+
                 const dayOrders = filteredOrders.filter(order => {
                     const orderDate = new Date(order.createdAt);
                     return orderDate >= date && orderDate < nextDate;
                 });
-                
+
                 dailyData.push({
                     day: days[date.getDay()],
                     sales: dayOrders.length,
@@ -103,7 +103,7 @@ function Analytics() {
                     categoryMap[category].revenue += (item.price * item.quantity);
                 });
             });
-            
+
             const categories = Object.entries(categoryMap)
                 .map(([name, data]) => ({
                     name,
@@ -112,7 +112,7 @@ function Analytics() {
                 }))
                 .sort((a, b) => b.sales - a.sales)
                 .slice(0, 4);
-            
+
             const totalCategorySales = categories.reduce((sum, c) => sum + c.sales, 0);
             const categoriesWithPercentage = categories.map(cat => ({
                 ...cat,
@@ -145,7 +145,7 @@ function Analytics() {
         const now = new Date();
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / 86400000);
-        
+
         if (diffDays === 0) return "Today";
         if (diffDays === 1) return "Yesterday";
         if (diffDays < 7) return `${diffDays} days ago`;
